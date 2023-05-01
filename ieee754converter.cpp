@@ -1,21 +1,16 @@
 #include "ieee754converter.h"
 
-//IEEE754Converter::IEEE754Converter()
-//{
-
-//}
-
 unsigned int IEEE754Converter::floatToIEENumX(float num) {
-
     union Code a;
+
     a.numero = num;
 
     return a.numerox;
 }
 
 unsigned int IEEE754Converter::floatToIEESign(float num) {
-
     union Code a;
+
     a.numero = num;
 
     return a.bitfield.sign;

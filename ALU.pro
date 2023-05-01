@@ -9,10 +9,12 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    ieee754converter.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
+    ieee754converter.h \
     mainwindow.h
 
 FORMS += \
