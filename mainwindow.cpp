@@ -56,7 +56,7 @@ float MainWindow::addOperation(float n1, float n2)
     unsigned int mantissa1 = IEEE754Converter::floatToIEEMantissa(n1) + bitPos.at(23);
     unsigned int mantissa2 = IEEE754Converter::floatToIEEMantissa(n2) + bitPos.at(23);
 
-    const unsigned int excesoBits = bitPos.at(31) + bitPos.at(30) + bitPos.at(29) + bitPos.at(28) + bitPos.at(27) + bitPos.at(26) + bitPos.at(25) + bitPos.at(24);
+    //const unsigned int excesoBits = bitPos.at(31) + bitPos.at(30) + bitPos.at(29) + bitPos.at(28) + bitPos.at(27) + bitPos.at(26) + bitPos.at(25) + bitPos.at(24);
 
     //1. Inicializar guarda, sticky, round, operandos y complementado.
 
@@ -220,8 +220,83 @@ float MainWindow::addOperation(float n1, float n2)
 
 
 /************************************ MULTIPLICACIÓN ************************************/
+void MainWindow::on_multiplicacion_clicked()
+{
+    float n1 = ui->op1Real->text().toFloat();
+    float n2 = ui->op1Real->text().toFloat();
+
+    float result = multiplyOperation(n1, n2);
+
+    bNumWrite(ui -> op1IEEE, IEEE754Converter::floatToIEESign(n1), IEEE754Converter::floatToIEEExp(n1), IEEE754Converter::floatToIEEMantissa(n1));
+    hexNumWrite(ui -> op1Hex, IEEE754Converter::floatToIEESign(n1), IEEE754Converter::floatToIEEExp(n1), IEEE754Converter::floatToIEEMantissa(n1));
+
+    bNumWrite(ui -> op2IEEE, IEEE754Converter::floatToIEESign(n2), IEEE754Converter::floatToIEEExp(n2), IEEE754Converter::floatToIEEMantissa(n2));
+    hexNumWrite(ui -> op2Hex, IEEE754Converter::floatToIEESign(n2), IEEE754Converter::floatToIEEExp(n2), IEEE754Converter::floatToIEEMantissa(n2));
+
+    ui->resulReal->setText(QString::fromStdString(std::to_string(result)));
+    bNumWrite(ui -> resulIEEE, IEEE754Converter::floatToIEESign(result), IEEE754Converter::floatToIEEExp(result), IEEE754Converter::floatToIEEMantissa(result));
+    hexNumWrite(ui -> resulHex, IEEE754Converter::floatToIEESign(result), IEEE754Converter::floatToIEEExp(result), IEEE754Converter::floatToIEEMantissa(result));
+}
 
 
+float MainWindow::multiplyOperation(float n1, float n2) {
+
+    /*************************** COMENTAR TODO POR APARTADOS, ESTÁ HECHO DIRECTAMENTE ******************************/
+
+    unsigned int expo1 = IEEE754Converter::floatToIEEExp(n1);
+    unsigned int expo2 = IEEE754Converter::floatToIEEExp(n2);
+
+    unsigned int signo1 = IEEE754Converter::floatToIEESign(n1);
+    unsigned int signo2 = IEEE754Converter::floatToIEESign(n2);
+
+    unsigned int mantissa1 = IEEE754Converter::floatToIEEMantissa(n1) + bitPos.at(23);
+    unsigned int mantissa2 = IEEE754Converter::floatToIEEMantissa(n2) + bitPos.at(23);
+
+    unsigned int signoResul = signo1^signo2;
+
+    int expResul = expo1 + expo2 - 0b1111111;
+
+    unsigned int c = 0, P = 0, A = mantissa1;
+
+    for (int i = 0; i < 24; i++) {
+
+        P += A % 2 * mantissa2;
+        A = (A>>1) + (P % 2)*bitPos.at(23);
+        P = (P>>1) + c * bitPos.at(23);
+        c >>= 1;
+    }
+
+    if ((P & bitPos.at(23)) == 0) {
+        P <<= 1;
+    }
+    else {
+        expResul++;
+    }
+
+    unsigned int r = (A & bitPos.at(23)) != 0;
+
+    unsigned int st = 0;
+
+    for (int i = 0; i < 23; i++) {
+        st |= (A & bitPos.at(i)) != 0;
+    }
+
+    if ((r && st) || (r && !st && P%2)) {
+        P+=1;
+    }
+
+    if (expResul > 0b11111111) {
+        return (signoResul) ? -Q_INFINITY:Q_INFINITY;
+    }
+    else if (expResul < 0) {
+        unsigned int t = 1 - expResul;
+        P >>= t;
+        expResul = 0;
+    }
+
+    return IEEE754Converter::IEEtoFloat(signoResul, expResul, P);
+
+}
 
 /************************************ DIVISIÓN ************************************/
 
@@ -353,4 +428,6 @@ void MainWindow::on_pushButton_clicked()
     ui->resulIEEE->setText("");
     ui->resulHex->setText("");
 }
+
+
 
