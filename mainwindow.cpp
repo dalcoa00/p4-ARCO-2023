@@ -54,7 +54,7 @@ float MainWindow::addOperation(float n1, float n2)
     unsigned int signo2 = IEEE754Converter::floatToIEESign(n2);
 
     unsigned int mantissa1 = IEEE754Converter::floatToIEEMantissa(n1) + bitPos.at(23);
-    unsigned int mantissa2 = IEEE754Converter::floatToIEESign(n2) + bitPos.at(23);
+    unsigned int mantissa2 = IEEE754Converter::floatToIEEMantissa(n2) + bitPos.at(23);
 
     const unsigned int excesoBits = bitPos.at(31) + bitPos.at(30) + bitPos.at(29) + bitPos.at(28) + bitPos.at(27) + bitPos.at(26) + bitPos.at(25) + bitPos.at(24);
 
