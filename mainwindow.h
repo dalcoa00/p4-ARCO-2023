@@ -21,6 +21,8 @@ public:
 private slots:
     void on_suma_clicked();
 
+    void on_pushButton_clicked();
+
 private:
     void bNumWrite(QLineEdit* objective, unsigned int signo, unsigned int expo, unsigned int mantissa);
     void hexNumWrite(QLineEdit* objective, unsigned int signo, unsigned int expo, unsigned int mantissa);

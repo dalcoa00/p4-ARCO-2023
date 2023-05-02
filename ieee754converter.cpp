@@ -50,9 +50,9 @@ float IEEE754Converter::IEEtoFloat(int signo, int exponente, int mantissa) {
 float IEEE754Converter::IEEtoFloat2() {
     union Code a;
 
-    a.bitfield.sign = 0;
-    a.bitfield.expo = 131;
     a.bitfield.partFrac = 4718592;
+    a.bitfield.expo = 131;
+    a.bitfield.sign = 0;
 
     return a.numero;
 }
