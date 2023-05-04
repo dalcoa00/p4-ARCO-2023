@@ -204,7 +204,7 @@ float MainWindow::addOperation(float n1, float n2)
 
     if(addExpo > 0b11111111)
     {
-        return (signoSuma) ? -Q_INFINITY:Q_INFINITY;
+        return (signoSuma)? -Q_INFINITY:Q_INFINITY;
 
     }else if(addExpo < 0){
         unsigned int T = 1 - addExpo;
@@ -286,7 +286,7 @@ float MainWindow::multiplyOperation(float n1, float n2) {
     }
 
     if (expResul > 0b11111111) {
-        return (signoResul) ? -Q_INFINITY:Q_INFINITY;
+        return (signoResul)? -Q_INFINITY:Q_INFINITY;
     }
     else if (expResul < 0) {
         unsigned int t = 1 - expResul;
