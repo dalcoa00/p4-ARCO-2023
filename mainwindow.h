@@ -1,9 +1,10 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "qlineedit.h"
+#include <QLineEdit>
 #include <QMainWindow>
 #include <ieee754converter.h>
+#include <iostream>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }

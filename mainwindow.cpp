@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+using namespace std;
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -19,6 +21,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->resulReal->setReadOnly(true);
     ui->resulIEEE->setReadOnly(true);
     ui->resulHex->setReadOnly(true);
+
+    cout << "Suma a realizar: 5.25 + (-5.30)" << endl;
 }
 
 MainWindow::~MainWindow()
@@ -86,14 +90,16 @@ float MainWindow::addOperation(float n1, float n2)
 
     int addExpo = expo1;
     unsigned int d = expo1 - expo2;
+    cout << "Exp1: " << expo1 << "\n" << "Exp2: " << expo2 << "\n" << "d: " << d << endl;
 
     //4. Comprobamos si los signos son diferentes.
 
     if(signo1 != signo2)
     {
-        mantissa2 = (~mantissa2)%0b1000000000000000000000000+1;
+        mantissa2 = (~mantissa2)%1000000000000000000000000+1;
     }
 
+    cout << "\nPaso4. \nMantisa 2: " << IEEE754Converter::floatToIEEMantissa(mantissa2);
     //5. Creamos P.
 
     unsigned int P = mantissa2;
@@ -112,6 +118,8 @@ float MainWindow::addOperation(float n1, float n2)
         st = st|(bitPos.at(d - i) &P);
     }
 
+    cout << "\ng: " << g << ", r: " << r << ", st: " << st << endl;
+
     //7. Comprobamos de nuevo los signos.
 
     if(signo1 != signo2)
@@ -123,8 +131,11 @@ float MainWindow::addOperation(float n1, float n2)
         }
 
     }else{
-        P = P >> d;
+        //P = P >> d;
+        P >>= d;
     }
+
+    cout << "\nPaso 7: d debería ser 0 aquí -- d: " << d << endl;
 
     //8. Sacamos el acarreo.
     unsigned int C = 0;
@@ -132,12 +143,16 @@ float MainWindow::addOperation(float n1, float n2)
     C = acarreo(mantissa1, P, 0, 0);
     P += mantissa1;
 
+    cout << "\nPaso 8: P debería ser: 111111100110011001100110" << endl;
+    cout << "P es: " << IEEE754Converter::floatToIEEMantissa(P) << endl;
+
     //9. Comprobamos el signo, la P y el acarreo.
 
     if(signo1 != signo2 && (P & bitPos.at(23)) != 0 && C == 0)
     {
         P = (~P)%0b1000000000000000000000000+1;
         cP = true;
+        cout << "\nPaso 9. P = " << P << endl;
     }
 
     //10. Asimismo, comprobamos si el signo es el mismo y el acarreo es 1.
@@ -167,6 +182,8 @@ float MainWindow::addOperation(float n1, float n2)
             st = 0;
         }
 
+        cout << "Paso 10;\nComo k debería de ser 7, entonces r y st = 0" << ",   k (resultado de la suma) = " << aux << endl;
+
         for(int i = 0; i < aux; i++)
         {
             P <<= 1;
@@ -175,10 +192,14 @@ float MainWindow::addOperation(float n1, float n2)
 
         addExpo -= aux;
 
+        cout << "\nEl exponente de la suma debería de ser 129-7= 122, es  exponenteSuma: " << addExpo << endl;
+
         if(P == 0)
         {
             addExpo = 0;
         }
+
+        cout << "\nPaso 11 y 12 sin debug" << endl;
     }
 
     //11. Redondeamos P.
