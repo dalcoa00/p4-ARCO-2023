@@ -148,7 +148,7 @@ float MainWindow::addOperation(float n1, float n2){
 
     //11. Redondeamos P.
     if((r==1 && st == 1)||(r==1 && st == 0 && P%2 == 1)){
-        unsigned int CC = calcularAcarreo(P, 0b100000000000000000000,0,0);
+        unsigned int CC = acarreo(P, 0b100000000000000000000,0,0);
         P = P+1;
 
         if(CC) {
@@ -291,7 +291,7 @@ void MainWindow::on_division_clicked()
 
 }
 
-float MainWindow::denormalCalculator(unsigned int sign, unsigned int mantissa){
+float MainWindow::denormalCalculator(unsigned int signo, unsigned int mantissa){
     float preMantissa =1-ConversorIEEE754::IEEtofloat(0,127,mantissa);
     if(sign){
         return mantissa * 1.1754944e-38;//2^-126 para la alu

@@ -1,10 +1,9 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QLineEdit>
 #include <QMainWindow>
-#include <ieee754converter.h>
-#include <iostream>
+#include <QLineEdit>
+#include "conversorieee754.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -18,23 +17,31 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-
 private slots:
     void on_suma_clicked();
 
-    void on_pushButton_clicked();
-
     void on_multiplicacion_clicked();
 
+    void on_division_clicked();
+
+    void on_Reset_clicked();
+
 private:
-    void bNumWrite(QLineEdit* objective, unsigned int signo, unsigned int expo, unsigned int mantissa);
-    void hexNumWrite(QLineEdit* objective, unsigned int signo, unsigned int expo, unsigned int mantissa);
-    float addOperation(float n1, float n2);
+
+    float denormalCalculator(unsigned int signo, unsigned int mantissa);
+    
+    float addOperation(float n1,float n2);
+
     float multiplyOperation(float n1, float n2);
-//    char hexCheck(int check);
-//    bool hexBoolCheck(int check);
-    unsigned int acarreo(unsigned int mantissa1, unsigned int mantissa2, unsigned int position, unsigned int acarreoAc);
+
+    void bNumWrite(QLineEdit* objetive,  unsigned int signo, unsigned int expo, unsigned int mantissa);
+
+    unsigned int acarreo(unsigned int mantissa1, unsigned int mantissa2, unsigned int posirion, unsigned int acarreoAc);
+
+    void hexNumWrite(QLineEdit* objetive,  unsigned int signp, unsigned int expo, unsigned int mantissa);
+
     Ui::MainWindow *ui;
+
     std::vector<unsigned int> bitPos;
 };
 #endif // MAINWINDOW_H
