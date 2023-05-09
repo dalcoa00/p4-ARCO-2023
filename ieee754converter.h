@@ -1,35 +1,31 @@
 #ifndef IEEE754CONVERTER_H
 #define IEEE754CONVERTER_H
 
-#include <stdio.h>
-#include <unistd.h>
-
 
 class IEEE754Converter
 {
 public:
     IEEE754Converter();
-    static unsigned int floatToIEENumX(float num);
-    static unsigned int floatToIEESign(float num);
-    static unsigned int floatToIEEExp(float num);
-    static unsigned int floatToIEEMantissa(float num);
-    static unsigned int floatToIEE2();
-    static float IEEtoFloat(int signo, int exponente, int mantissa);
-    static float IEEtoFloat2();
-
+    static unsigned int floattoIEENumex (float num);
+    static unsigned int floattoIEESign (float num);
+    static unsigned int floattoIEEExp (float num);
+    static unsigned int floattoIEEMantisa (float num);
+    static unsigned int floattoIEE2 ();
+    static float IEEtofloat (int signo, int exponente, int mantisa);
+    static float IEEtofloat2 ();
 
 private:
-
     union Code {
 
-        struct {
+        struct{
             unsigned int partFrac : 23;
             unsigned int expo : 8;
             unsigned int sign : 1;
-        } bitfield;
+        }bitfield;
 
         float numero;
         unsigned int numerox;
+
     };
 };
 

@@ -28,17 +28,17 @@ private slots:
 
 private:
 
-    float denormalCalculator(unsigned int signo, unsigned int mantissa);
+    float denormalCalculator(unsigned int sign, unsigned int mantissa);
     
-    float addOperation(float n1,float n2);
+    float addOperation(float op1,float op2);
 
-    float multiplyOperation(float n1, float n2);
+    float multiplyOperation(float op1, float op2);
 
-    void bNumWrite(QLineEdit* objetive,  unsigned int signo, unsigned int expo, unsigned int mantissa);
+    void binaryWriteIn(QLineEdit* child,  unsigned int sign, unsigned int exp, unsigned int mantisa);
 
-    unsigned int acarreo(unsigned int mantissa1, unsigned int mantissa2, unsigned int posirion, unsigned int acarreoAc);
+    unsigned int calcularAcarreo(unsigned int manA, unsigned int manB, unsigned int pos, unsigned int acarreoActual);
 
-    void hexNumWrite(QLineEdit* objetive,  unsigned int signp, unsigned int expo, unsigned int mantissa);
+    void hexWriteIn(QLineEdit* child,  unsigned int sign, unsigned int exp, unsigned int mantisa);
 
     Ui::MainWindow *ui;
 
