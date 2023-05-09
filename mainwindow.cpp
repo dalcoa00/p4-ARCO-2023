@@ -13,13 +13,21 @@ MainWindow::MainWindow(QWidget *parent)
     bitPos.push_back(1);
 
     for(int i = 1; i < 32; i++) bitPos.push_back(2*bitPos.at(i-1));
+
+    ui->op1IEEE->setReadOnly(true);
+    ui->op1Hex->setReadOnly(true);
+    ui->op2IEEE->setReadOnly(true);
+    ui->op2Hex->setReadOnly(true);
+    ui->resulReal->setReadOnly(true);
+    ui->resulIEEE->setReadOnly(true);
+    ui->resulHex->setReadOnly(true);
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
 }
-
+/************************************ SUMA ************************************/
 void MainWindow::on_suma_clicked()
 {
 
@@ -123,9 +131,9 @@ float MainWindow::addOperation(float n1, float n2){
     }
     else{
 
-        int k = 0;
-        for(unsigned int aux = P; aux != 0 && (aux & bitPos.at(23)) == 0; aux <<=1) k++;
-        if (k == 0){
+        int aux = 0;
+        for(unsigned int i = P; aux != 0 && (i & bitPos.at(23)) == 0; i <<=1) aux++;
+        if (aux == 0){
             st = r|st;
             r = g;
         }
@@ -133,14 +141,14 @@ float MainWindow::addOperation(float n1, float n2){
             st = 0; r = 0;
         }
 
-        for(int i = 0; i < k; i++){
+        for(int i = 0; i < aux; i++){
 
             P<<=1;
             P += g;
 
         }
 
-        addExpo -= k;
+        addExpo -= aux;
 
         if(P == 0) addExpo = 0;
 
@@ -179,7 +187,7 @@ float MainWindow::addOperation(float n1, float n2){
     return IEEE754Converter::IEEtoFloat(signoSuma, addExpo, P);
 
 }
-
+/************************************ MULTIPLICACIÓN ************************************/
 void MainWindow::on_multiplicacion_clicked()
 {
 
@@ -290,7 +298,7 @@ void MainWindow::on_division_clicked()
 
 
 }
-
+/************************************ MÉTODOS AUXILIARES ************************************/
 float MainWindow::denormalCalculator(unsigned int signo, unsigned int mantissa){
     float preMantissa =1-IEEE754Converter::IEEtoFloat(0,127,mantissa);
     if(signo){
@@ -347,33 +355,33 @@ void MainWindow::on_Reset_clicked()
 
 }
 
-void MainWindow::hexNumWrite(QLineEdit* child, unsigned int sign, unsigned int exp, unsigned int mantissa){
+void MainWindow::hexNumWrite(QLineEdit* objective, unsigned int signo, unsigned int expo, unsigned int mantissa){
 
-    QString stringHex;
+    QString hexNum;
 
-    unsigned int aux = (sign << 31) + (exp << 23) + (mantissa);
+    unsigned int chain = (signo << 31) + (expo << 23) + (mantissa);
 
     for(int i = 0; i < 8; i++) {
 
-        unsigned int mod = aux%16;
+        unsigned int mod = chain%16;
 
         switch (mod) {
 
-        case 10: stringHex.push_front('A');break;
-        case 11: stringHex.push_front('B');break;
-        case 12: stringHex.push_front('C');break;
-        case 13: stringHex.push_front('D');break;
-        case 14: stringHex.push_front('E');break;
-        case 15: stringHex.push_front('F');break;
+        case 10: hexNum.push_front('A');break;
+        case 11: hexNum.push_front('B');break;
+        case 12: hexNum.push_front('C');break;
+        case 13: hexNum.push_front('D');break;
+        case 14: hexNum.push_front('E');break;
+        case 15: hexNum.push_front('F');break;
 
-        default: stringHex.push_front(QString::fromStdString(std::to_string(mod)));
+        default: hexNum.push_front(QString::fromStdString(std::to_string(mod)));
 
         }
 
-        aux >>= 4;
+        chain >>= 4;
 
     }
-    child->setText("0x"+stringHex);
+    objective->setText("0x"+hexNum);
 
 
 }
