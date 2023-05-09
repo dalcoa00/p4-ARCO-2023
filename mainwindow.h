@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 #include <QLineEdit>
-#include "conversorieee754.h"
+#include "ieee754converter.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }

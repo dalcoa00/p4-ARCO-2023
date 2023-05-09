@@ -29,29 +29,29 @@ void MainWindow::on_suma_clicked()
 
     float result = addOperation(n1, n2);
 
-    binaryWriteIn( ui->op1IEEE, ConversorIEEE754::floattoIEESign(n1), ConversorIEEE754::floattoIEEExp(n1), ConversorIEEE754::floattoIEEMantissa(n1));
-    hexWriteIn(ui->op1Hex,  ConversorIEEE754::floattoIEESign(n1), ConversorIEEE754::floattoIEEExp(n1), ConversorIEEE754::floattoIEEMantissa(n1));
+    bNumWrite( ui->op1IEEE, IEEE754Converter::floatToIEESign(n1), IEEE754Converter::floatToIEEExp(n1), IEEE754Converter::floatToIEEMantissa(n1));
+    hexNumWrite(ui->op1Hex,  IEEE754Converter::floatToIEESign(n1), IEEE754Converter::floatToIEEExp(n1), IEEE754Converter::floatToIEEMantissa(n1));
 
-    binaryWriteIn( ui->op2IEEE,  ConversorIEEE754::floattoIEESign(n2), ConversorIEEE754::floattoIEEExp(n2), ConversorIEEE754::floattoIEEMantissa(n2));
-    hexWriteIn(ui->op2Hex, ConversorIEEE754::floattoIEESign(n2), ConversorIEEE754::floattoIEEExp(n2), ConversorIEEE754::floattoIEEMantissa(n2));
+    bNumWrite( ui->op2IEEE,  IEEE754Converter::floatToIEESign(n2), IEEE754Converter::floatToIEEExp(n2), IEEE754Converter::floatToIEEMantissa(n2));
+    hexNumWrite(ui->op2Hex, IEEE754Converter::floatToIEESign(n2), IEEE754Converter::floatToIEEExp(n2), IEEE754Converter::floatToIEEMantissa(n2));
 
     ui->resulReal->setText(QString::fromStdString(std::to_string(result)));
-    binaryWriteIn(ui -> resulIEEE, ConversorIEEE754::floattoIEESign(result), ConversorIEEE754::floattoIEEExp(result), ConversorIEEE754::floattoIEEMantissa(result));
-    hexWriteIn(ui->resulHex, ConversorIEEE754::floattoIEESign(result), ConversorIEEE754::floattoIEEExp(result), ConversorIEEE754::floattoIEEMantissa(result));
+    bNumWrite(ui -> resulIEEE, IEEE754Converter::floatToIEESign(result), IEEE754Converter::floatToIEEExp(result), IEEE754Converter::floatToIEEMantissa(result));
+    hexNumWrite(ui->resulHex, IEEE754Converter::floatToIEESign(result), IEEE754Converter::floatToIEEExp(result), IEEE754Converter::floatToIEEMantissa(result));
 
 }
 
 float MainWindow::addOperation(float n1, float n2){
     //Pasos previos
 
-    unsigned int expo1 = ConversorIEEE754::floattoIEESign(n1);
-    unsigned int expo2 = ConversorIEEE754::floattoIEESign(n2);
+    unsigned int expo1 = IEEE754Converter::floatToIEESign(n1);
+    unsigned int expo2 = IEEE754Converter::floatToIEESign(n2);
 
-    unsigned int signo1 = ConversorIEEE754::floattoIEEExp(n1);
-    unsigned int signo2 = ConversorIEEE754::floattoIEEExp(n2);
+    unsigned int signo1 = IEEE754Converter::floatToIEEExp(n1);
+    unsigned int signo2 = IEEE754Converter::floatToIEEExp(n2);
 
-    unsigned int mantissa1 = ConversorIEEE754::floattoIEEMantissa(n1) + bitPos.at(23);
-    unsigned int mantissa2 = ConversorIEEE754::floattoIEEMantissa(n2) + bitPos.at(23);
+    unsigned int mantissa1 = IEEE754Converter::floatToIEEMantissa(n1) + bitPos.at(23);
+    unsigned int mantissa2 = IEEE754Converter::floatToIEEMantissa(n2) + bitPos.at(23);
 
 
 //    const unsigned int excsBits = bitPos.at(31)+bitPos.at(30)+bitPos.at(29)+bitPos.at(28)+bitPos.at(27)+bitPos.at(26)+bitPos.at(25)+bitPos.at(24);
@@ -65,12 +65,12 @@ float MainWindow::addOperation(float n1, float n2){
 
     //2. Comprobar exponentes.
     if(expo1 < expo2){
-        expo1 = ConversorIEEE754::floattoIEEExp(n2);
-        expo2 = ConversorIEEE754::floattoIEEExp(n1);
-        mantissa1 = ConversorIEEE754::floattoIEEMantissa(n2) + bitPos.at(23);
-        mantissa2 = ConversorIEEE754::floattoIEEMantissa(n1) + bitPos.at(23);
-        signo1 = ConversorIEEE754::floattoIEESign(n2);
-        signo2 = ConversorIEEE754::floattoIEESign(n1);
+        expo1 = IEEE754Converter::floatToIEEExp(n2);
+        expo2 = IEEE754Converter::floatToIEEExp(n1);
+        mantissa1 = IEEE754Converter::floatToIEEMantissa(n2) + bitPos.at(23);
+        mantissa2 = IEEE754Converter::floatToIEEMantissa(n1) + bitPos.at(23);
+        signo1 = IEEE754Converter::floatToIEESign(n2);
+        signo2 = IEEE754Converter::floatToIEESign(n1);
         interOp = true;
     }
     //3. Calculamos exponente de la suma y de "d".
@@ -176,7 +176,7 @@ float MainWindow::addOperation(float n1, float n2){
 
     }
 
-    return ConversorIEEE754::IEEtofloat(signoSuma, addExpo, P);
+    return IEEE754Converter::IEEtoFloat(signoSuma, addExpo, P);
 
 }
 
@@ -189,29 +189,29 @@ void MainWindow::on_multiplicacion_clicked()
 
     float result = multiplyOperation(n1, n2);
 
-    binaryWriteIn( ui->op1IEEE, ConversorIEEE754::floattoIEESign(n1), ConversorIEEE754::floattoIEEExp(n1), ConversorIEEE754::floattoIEEMantissa(n1));
-    hexWriteIn(ui->op1Hex,  ConversorIEEE754::floattoIEESign(n1), ConversorIEEE754::floattoIEEExp(n1), ConversorIEEE754::floattoIEEMantissa(n1));
+    bNumWrite( ui->op1IEEE, IEEE754Converter::floatToIEESign(n1), IEEE754Converter::floatToIEEExp(n1), IEEE754Converter::floatToIEEMantissa(n1));
+    hexNumWrite(ui->op1Hex,  IEEE754Converter::floatToIEESign(n1), IEEE754Converter::floatToIEEExp(n1), IEEE754Converter::floatToIEEMantissa(n1));
 
-    binaryWriteIn( ui->op2IEEE,  ConversorIEEE754::floattoIEESign(n2), ConversorIEEE754::floattoIEEExp(n2), ConversorIEEE754::floattoIEEMantissa(n2));
-    hexWriteIn(ui->op2Hex, ConversorIEEE754::floattoIEESign(n2), ConversorIEEE754::floattoIEEExp(n2), ConversorIEEE754::floattoIEEMantissa(n2));
+    bNumWrite( ui->op2IEEE,  IEEE754Converter::floatToIEESign(n2), IEEE754Converter::floatToIEEExp(n2), IEEE754Converter::floatToIEEMantissa(n2));
+    hexNumWrite(ui->op2Hex, IEEE754Converter::floatToIEESign(n2), IEEE754Converter::floatToIEEExp(n2), IEEE754Converter::floatToIEEMantissa(n2));
 
     ui->resulReal->setText(QString::fromStdString(std::to_string(result)));
-    binaryWriteIn(ui -> resulIEEE, ConversorIEEE754::floattoIEESign(result), ConversorIEEE754::floattoIEEExp(result), ConversorIEEE754::floattoIEEMantissa(result));
-    hexWriteIn(ui->resulHex, ConversorIEEE754::floattoIEESign(result), ConversorIEEE754::floattoIEEExp(result), ConversorIEEE754::floattoIEEMantissa(result));
+    bNumWrite(ui -> resulIEEE, IEEE754Converter::floatToIEESign(result), IEEE754Converter::floatToIEEExp(result), IEEE754Converter::floatToIEEMantissa(result));
+    hexNumWrite(ui->resulHex, IEEE754Converter::floatToIEESign(result), IEEE754Converter::floatToIEEExp(result), IEEE754Converter::floatToIEEMantissa(result));
 
 
 }
 
 float MainWindow::multiplyOperation(float n1, float n2){
 
-    unsigned int signo1 = ConversorIEEE754::floattoIEESign(n1);
-    unsigned int signo2 = ConversorIEEE754::floattoIEESign(n2);
+    unsigned int signo1 = IEEE754Converter::floatToIEESign(n1);
+    unsigned int signo2 = IEEE754Converter::floatToIEESign(n2);
 
-    unsigned int expo1 = ConversorIEEE754::floattoIEEExp(n1);
-    unsigned int expo2 = ConversorIEEE754::floattoIEEExp(n2);
+    unsigned int expo1 = IEEE754Converter::floatToIEEExp(n1);
+    unsigned int expo2 = IEEE754Converter::floatToIEEExp(n2);
 
-    unsigned int mantissa1 = ConversorIEEE754::floattoIEEMantissa(n1) + bitPos.at(23);
-    unsigned int mantissa2 = ConversorIEEE754::floattoIEEMantissa(n2) + bitPos.at(23);
+    unsigned int mantissa1 = IEEE754Converter::floatToIEEMantissa(n1) + bitPos.at(23);
+    unsigned int mantissa2 = IEEE754Converter::floatToIEEMantissa(n2) + bitPos.at(23);
 
     //Paso 1:
     unsigned int signoResul = signo1 ^ signo2;
@@ -264,25 +264,25 @@ float MainWindow::multiplyOperation(float n1, float n2){
 
     }
 
-    return ConversorIEEE754::IEEtofloat(signoResul, expResul, P);
+    return IEEE754Converter::IEEtoFloat(signoResul, expResul, P);
 
 }
 
 void MainWindow::on_division_clicked()
 {
-    float n1 = ui->op1Real->text().toFloat();
-    float n2 = ui->op2Real->text().toFloat();
+//    float n1 = ui->op1Real->text().toFloat();
+//    float n2 = ui->op2Real->text().toFloat();
 
-    //Pasos previos
+//    //Pasos previos
 
-    unsigned int signo1 = ConversorIEEE754::floattoIEESign(n1);
-    unsigned int signo2 = ConversorIEEE754::floattoIEESign(n2);
+//    unsigned int signo1 = IEEE754Converter::floatToIEESign(n1);
+//    unsigned int signo2 = IEEE754Converter::floatToIEESign(n2);
 
-    unsigned int expo1 = ConversorIEEE754::floattoIEEExp(n1);
-    unsigned int expo2 = ConversorIEEE754::floattoIEEExp(n2);
+//    unsigned int expo1 = IEEE754Converter::floatToIEEExp(n1);
+//    unsigned int expo2 = IEEE754Converter::floatToIEEExp(n2);
 
-    unsigned int mantissa1 = ConversorIEEE754::floattoIEEMantissa(n1);// + bitPos.at(23);
-    unsigned int mantissa2 = ConversorIEEE754::floattoIEEMantissa(n2);// + bitPos.at(23);
+//    unsigned int mantissa1 = IEEE754Converter::floatToIEEMantissa(n1);// + bitPos.at(23);
+//    unsigned int mantissa2 = IEEE754Converter::floatToIEEMantissa(n2);// + bitPos.at(23);
 
 
 
@@ -292,8 +292,8 @@ void MainWindow::on_division_clicked()
 }
 
 float MainWindow::denormalCalculator(unsigned int signo, unsigned int mantissa){
-    float preMantissa =1-ConversorIEEE754::IEEtofloat(0,127,mantissa);
-    if(sign){
+    float preMantissa =1-IEEE754Converter::IEEtoFloat(0,127,mantissa);
+    if(signo){
         return mantissa * 1.1754944e-38;//2^-126 para la alu
     }else{
         return mantissa * -1.1754944e-38;//-2^-126 para la alu
@@ -327,13 +327,13 @@ unsigned int MainWindow::acarreo(unsigned int mantissa1, unsigned int mantissa2,
     //Caso base.
     if(position == 24) return acarreoAc;
     //Comprobaciones.
-    if((mantissa2 & bitPos.at(position)) != 0 && (mantissa1 & bitPos.at(position)) != 0) return calcularAcarreo(mantissa1, mantissa2, position+1, 1);
-    else if(((mantissa2 & bitPos.at(position)) != 0 || (mantissa1 & bitPos.at(position)) != 0) && acarreoAc != 0) return calcularAcarreo(mantissa1, mantissa2, position+1, 1);
-    else return calcularAcarreo(mantissa1, mantissa2, position+1, 0);
+    if((mantissa2 & bitPos.at(position)) != 0 && (mantissa1 & bitPos.at(position)) != 0) return acarreo(mantissa1, mantissa2, position+1, 1);
+    else if(((mantissa2 & bitPos.at(position)) != 0 || (mantissa1 & bitPos.at(position)) != 0) && acarreoAc != 0) return acarreo(mantissa1, mantissa2, position+1, 1);
+    else return acarreo(mantissa1, mantissa2, position+1, 0);
 
 }
 
-void MainWindow::on_pushButtom_clicked()
+void MainWindow::on_Reset_clicked()
 {
     ui->op1Real->setText("");
     ui->op2Real->setText("");
