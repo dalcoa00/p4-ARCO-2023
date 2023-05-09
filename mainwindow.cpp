@@ -1,8 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-using namespace std;
+#include <iostream>
 
+//Aquí hacemos las funciones de la ALU
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -10,19 +11,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     bitPos.push_back(1);
-    for(int i = 1; i < 32; i++){
-        bitPos.push_back(2 * bitPos.at(i - 1));
-    }
 
-    ui->op1IEEE->setReadOnly(true);
-    ui->op1Hex->setReadOnly(true);
-    ui->op2IEEE->setReadOnly(true);
-    ui->op2Hex->setReadOnly(true);
-    ui->resulReal->setReadOnly(true);
-    ui->resulIEEE->setReadOnly(true);
-    ui->resulHex->setReadOnly(true);
-
-    cout << "Suma a realizar: 5.25 + (-5.30)" << endl;
+    for(int i = 1; i < 32; i++) bitPos.push_back(2*bitPos.at(i-1));
 }
 
 MainWindow::~MainWindow()
@@ -30,187 +20,138 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-/************************************ SUMA ************************************/
 void MainWindow::on_suma_clicked()
 {
-    float n1 = ui -> op1Real -> text().toFloat();
-    float n2 = ui -> op2Real -> text().toFloat();
+
+    float n1 = ui->op1Real->text().toFloat();
+
+    float n2 = ui->op2Real->text().toFloat();
 
     float result = addOperation(n1, n2);
 
-    bNumWrite(ui -> op1IEEE, IEEE754Converter::floatToIEESign(n1), IEEE754Converter::floatToIEEExp(n1), IEEE754Converter::floatToIEEMantissa(n1));
-    hexNumWrite(ui -> op1Hex, IEEE754Converter::floatToIEESign(n1), IEEE754Converter::floatToIEEExp(n1), IEEE754Converter::floatToIEEMantissa(n1));
+    binaryWriteIn( ui->op1IEEE, ConversorIEEE754::floattoIEESign(n1), ConversorIEEE754::floattoIEEExp(n1), ConversorIEEE754::floattoIEEMantissa(n1));
+    hexWriteIn(ui->op1Hex,  ConversorIEEE754::floattoIEESign(n1), ConversorIEEE754::floattoIEEExp(n1), ConversorIEEE754::floattoIEEMantissa(n1));
 
-    bNumWrite(ui -> op2IEEE, IEEE754Converter::floatToIEESign(n2), IEEE754Converter::floatToIEEExp(n2), IEEE754Converter::floatToIEEMantissa(n2));
-    hexNumWrite(ui -> op2Hex, IEEE754Converter::floatToIEESign(n2), IEEE754Converter::floatToIEEExp(n2), IEEE754Converter::floatToIEEMantissa(n2));
+    binaryWriteIn( ui->op2IEEE,  ConversorIEEE754::floattoIEESign(n2), ConversorIEEE754::floattoIEEExp(n2), ConversorIEEE754::floattoIEEMantissa(n2));
+    hexWriteIn(ui->op2Hex, ConversorIEEE754::floattoIEESign(n2), ConversorIEEE754::floattoIEEExp(n2), ConversorIEEE754::floattoIEEMantissa(n2));
 
     ui->resulReal->setText(QString::fromStdString(std::to_string(result)));
-    bNumWrite(ui -> resulIEEE, IEEE754Converter::floatToIEESign(result), IEEE754Converter::floatToIEEExp(result), IEEE754Converter::floatToIEEMantissa(result));
-    hexNumWrite(ui -> resulHex, IEEE754Converter::floatToIEESign(result), IEEE754Converter::floatToIEEExp(result), IEEE754Converter::floatToIEEMantissa(result));
+    binaryWriteIn(ui -> resulIEEE, ConversorIEEE754::floattoIEESign(result), ConversorIEEE754::floattoIEEExp(result), ConversorIEEE754::floattoIEEMantissa(result));
+    hexWriteIn(ui->resulHex, ConversorIEEE754::floattoIEESign(result), ConversorIEEE754::floattoIEEExp(result), ConversorIEEE754::floattoIEEMantissa(result));
+
 }
 
-float MainWindow::addOperation(float n1, float n2)
-{
-    unsigned int expo1 = IEEE754Converter::floatToIEEExp(n1);
-    unsigned int expo2 = IEEE754Converter::floatToIEEExp(n2);
+float MainWindow::addOperation(float n1, float n2){
+    //Pasos previos
 
-    unsigned int signo1 = IEEE754Converter::floatToIEESign(n1);
-    unsigned int signo2 = IEEE754Converter::floatToIEESign(n2);
+    unsigned int expo1 = ConversorIEEE754::floattoIEESign(n1);
+    unsigned int expo2 = ConversorIEEE754::floattoIEESign(n2);
 
-    unsigned int mantissa1 = IEEE754Converter::floatToIEEMantissa(n1) + bitPos.at(23);
-    unsigned int mantissa2 = IEEE754Converter::floatToIEEMantissa(n2) + bitPos.at(23);
+    unsigned int signo1 = ConversorIEEE754::floattoIEEExp(n1);
+    unsigned int signo2 = ConversorIEEE754::floattoIEEExp(n2);
 
-    //const unsigned int excesoBits = bitPos.at(31) + bitPos.at(30) + bitPos.at(29) + bitPos.at(28) + bitPos.at(27) + bitPos.at(26) + bitPos.at(25) + bitPos.at(24);
+    unsigned int mantissa1 = ConversorIEEE754::floattoIEEMantissa(n1) + bitPos.at(23);
+    unsigned int mantissa2 = ConversorIEEE754::floattoIEEMantissa(n2) + bitPos.at(23);
+
+
+//    const unsigned int excsBits = bitPos.at(31)+bitPos.at(30)+bitPos.at(29)+bitPos.at(28)+bitPos.at(27)+bitPos.at(26)+bitPos.at(25)+bitPos.at(24);
 
     //1. Inicializar guarda, sticky, round, operandos y complementado.
+    unsigned int signoSuma;
 
-    unsigned int signoSuma, g = 0, r = 0, st = 0;
-    bool interOp = false, cP = false;
+    unsigned int g = 0; unsigned int r = 0; unsigned int st = 0;
+    bool interOp = false;
+    bool cP = false;
 
     //2. Comprobar exponentes.
-
-    if(expo1 < expo2)
-    {
-        expo1 = IEEE754Converter::floatToIEEExp(n2);
-        expo2 = IEEE754Converter::floatToIEEExp(n1);
-        mantissa1 = IEEE754Converter::floatToIEEMantissa(n2) + bitPos.at(23);
-        mantissa2 = IEEE754Converter::floatToIEEMantissa(n1) + bitPos.at(23);
-        signo1 = IEEE754Converter::floatToIEESign(n2);
-        signo2 = IEEE754Converter::floatToIEESign(n1);
-
-//        unsigned int auxExpo = expo1;
-//        unsigned int auxSigno = signo1;
-//        unsigned int auxMant = mantissa1;
-//        expo1 = expo2; signo1 = signo2; mantissa1 = mantissa2;
-//        expo2 = auxExpo; signo2 = auxSigno; mantissa2 = auxMant;
+    if(expo1 < expo2){
+        expo1 = ConversorIEEE754::floattoIEEExp(n2);
+        expo2 = ConversorIEEE754::floattoIEEExp(n1);
+        mantissa1 = ConversorIEEE754::floattoIEEMantissa(n2) + bitPos.at(23);
+        mantissa2 = ConversorIEEE754::floattoIEEMantissa(n1) + bitPos.at(23);
+        signo1 = ConversorIEEE754::floattoIEESign(n2);
+        signo2 = ConversorIEEE754::floattoIEESign(n1);
         interOp = true;
     }
-
     //3. Calculamos exponente de la suma y de "d".
-
     int addExpo = expo1;
     unsigned int d = expo1 - expo2;
-    cout << "Exp1: " << expo1 << "\n" << "Exp2: " << expo2 << "\n" << "d: " << d << endl;
-
     //4. Comprobamos si los signos son diferentes.
 
-    if(signo1 != signo2)
-    {
-        mantissa2 = (~mantissa2)%1000000000000000000000000+1;
-    }
+    if(signo1!=signo2) mantissa2 = (~mantissa2)%0b1000000000000000000000000+1;
 
-    cout << "\nPaso4. \nMantisa 2: " << IEEE754Converter::floatToIEEMantissa(mantissa2);
     //5. Creamos P.
-
     unsigned int P = mantissa2;
-
     //6. Establecemos los bits de guarda, sticky y round.
-
-    if(d >= 3 && d < 25)
-    {
-        g = (bitPos.at(d - 1) &P) != 0;
-        r = (bitPos.at(d - 2) &P) != 0;
-        st = (bitPos.at(d - 3) &P) != 0;
+    if(d>=3 && d < 25){
+        g = (bitPos.at(d-1)&P)!=0;
+        r = (bitPos.at(d-2)&P)!=0;
+        st = (bitPos.at(d-3)&P)!=0;
     }
-
-    for(int i = d - 3; !st && i > 0; i--)
-    {
-        st = st|(bitPos.at(d - i) &P);
-    }
-
-    cout << "\ng: " << g << ", r: " << r << ", st: " << st << endl;
-
+    for(int i = d-3; i > 0 && !st; i--) st = st|(bitPos.at(d-i)&P);
     //7. Comprobamos de nuevo los signos.
-
-    if(signo1 != signo2)
-    {
-        for(unsigned int i = 0; i < d; i++)
-        {
+    if(signo1!=signo2){
+        for(unsigned int i = 0; i < d; i++){
             P >>= 1;
             P += bitPos.at(23);
         }
-
-    }else{
-        //P = P >> d;
-        P >>= d;
     }
-
-    cout << "\nPaso 7: d debería ser 0 aquí -- d: " << d << endl;
-
+    else P = P>>d;
     //8. Sacamos el acarreo.
     unsigned int C = 0;
-
     C = acarreo(mantissa1, P, 0, 0);
-    P += mantissa1;
-
-    cout << "\nPaso 8: P debería ser: 111111100110011001100110" << endl;
-    cout << "P es: " << IEEE754Converter::floatToIEEMantissa(P) << endl;
+    P = mantissa1 + P;
 
     //9. Comprobamos el signo, la P y el acarreo.
-
-    if(signo1 != signo2 && (P & bitPos.at(23)) != 0 && C == 0)
-    {
+    if(signo1!=signo2 && (P & bitPos.at(23)) != 0 && C == 0){
         P = (~P)%0b1000000000000000000000000+1;
         cP = true;
-        cout << "\nPaso 9. P = " << P << endl;
     }
 
     //10. Asimismo, comprobamos si el signo es el mismo y el acarreo es 1.
+    if(signo1 == signo2 && C==1){
 
-    if(signo1 == signo2 && C == 1)
-    {
-        st = g|r|st;
-        r = P % 2;
+        st = g | r | st;
 
-        P = P >> 1;
+        r = P%2;
+
+        P = P>>1;
         P += bitPos.at(23);
 
         addExpo++;
-    }else{
-        int aux = 0;
 
-        for(unsigned int i = P; i != 0 && (i & bitPos.at(23)) == 0; i <<= 1){
-            aux++;
-        }
+    }
+    else{
 
-        if(aux == 0)
-        {
+        int k = 0;
+        for(unsigned int aux = P; aux != 0 && (aux & bitPos.at(23)) == 0; aux <<=1) k++;
+        if (k == 0){
             st = r|st;
             r = g;
-        }else{
-            r = 0;
-            st = 0;
+        }
+        else{
+            st = 0; r = 0;
         }
 
-        cout << "Paso 10;\nComo k debería de ser 7, entonces r y st = 0" << ",   k (resultado de la suma) = " << aux << endl;
+        for(int i = 0; i < k; i++){
 
-        for(int i = 0; i < aux; i++)
-        {
-            P <<= 1;
+            P<<=1;
             P += g;
+
         }
 
-        addExpo -= aux;
+        addExpo -= k;
 
-        cout << "\nEl exponente de la suma debería de ser 129-7= 122, es  exponenteSuma: " << addExpo << endl;
+        if(P == 0) addExpo = 0;
 
-        if(P == 0)
-        {
-            addExpo = 0;
-        }
-
-        cout << "\nPaso 11 y 12 sin debug" << endl;
     }
 
     //11. Redondeamos P.
+    if((r==1 && st == 1)||(r==1 && st == 0 && P%2 == 1)){
+        unsigned int CC = calcularAcarreo(P, 0b100000000000000000000,0,0);
+        P = P+1;
 
-    if((st == 1 && r == 1) || (r == 1 && st == 0 && P % 2 == 1))
-    {
-        unsigned int CC = acarreo(P, 0b100000000000000000000, 0, 0);
-        P += 1;
-
-        if(CC)
-        {
+        if(CC) {
             P >>= 1;
             P += bitPos.at(23);
             addExpo++;
@@ -219,236 +160,221 @@ float MainWindow::addOperation(float n1, float n2)
 
     //12. Calculamos el signo del resultado
 
-    signoSuma = (!interOp && cP) ? signo2 : signo1;
+    signoSuma = (!interOp && cP) ? signo2:signo1;
 
     //Denormales
-
-    if(addExpo > 0b11111111)
-    {
+    if(addExpo>0b11111111){
         return (signoSuma)? -Q_INFINITY:Q_INFINITY;
+    }
+    else if(addExpo<0){
 
-    }else if(addExpo < 0){
-        unsigned int T = 1 - addExpo;
+        unsigned int t = 1 - addExpo;
 
-        P >>= T;
+        P >>=t;
 
         addExpo = 0;
+
     }
 
-    return IEEE754Converter::IEEtoFloat(signoSuma, addExpo, P);
+    return ConversorIEEE754::IEEtofloat(signoSuma, addExpo, P);
 
 }
 
-
-/************************************ MULTIPLICACIÓN ************************************/
 void MainWindow::on_multiplicacion_clicked()
 {
+
     float n1 = ui->op1Real->text().toFloat();
+
     float n2 = ui->op1Real->text().toFloat();
 
     float result = multiplyOperation(n1, n2);
 
-    bNumWrite(ui -> op1IEEE, IEEE754Converter::floatToIEESign(n1), IEEE754Converter::floatToIEEExp(n1), IEEE754Converter::floatToIEEMantissa(n1));
-    hexNumWrite(ui -> op1Hex, IEEE754Converter::floatToIEESign(n1), IEEE754Converter::floatToIEEExp(n1), IEEE754Converter::floatToIEEMantissa(n1));
+    binaryWriteIn( ui->op1IEEE, ConversorIEEE754::floattoIEESign(n1), ConversorIEEE754::floattoIEEExp(n1), ConversorIEEE754::floattoIEEMantissa(n1));
+    hexWriteIn(ui->op1Hex,  ConversorIEEE754::floattoIEESign(n1), ConversorIEEE754::floattoIEEExp(n1), ConversorIEEE754::floattoIEEMantissa(n1));
 
-    bNumWrite(ui -> op2IEEE, IEEE754Converter::floatToIEESign(n2), IEEE754Converter::floatToIEEExp(n2), IEEE754Converter::floatToIEEMantissa(n2));
-    hexNumWrite(ui -> op2Hex, IEEE754Converter::floatToIEESign(n2), IEEE754Converter::floatToIEEExp(n2), IEEE754Converter::floatToIEEMantissa(n2));
+    binaryWriteIn( ui->op2IEEE,  ConversorIEEE754::floattoIEESign(n2), ConversorIEEE754::floattoIEEExp(n2), ConversorIEEE754::floattoIEEMantissa(n2));
+    hexWriteIn(ui->op2Hex, ConversorIEEE754::floattoIEESign(n2), ConversorIEEE754::floattoIEEExp(n2), ConversorIEEE754::floattoIEEMantissa(n2));
 
     ui->resulReal->setText(QString::fromStdString(std::to_string(result)));
-    bNumWrite(ui -> resulIEEE, IEEE754Converter::floatToIEESign(result), IEEE754Converter::floatToIEEExp(result), IEEE754Converter::floatToIEEMantissa(result));
-    hexNumWrite(ui -> resulHex, IEEE754Converter::floatToIEESign(result), IEEE754Converter::floatToIEEExp(result), IEEE754Converter::floatToIEEMantissa(result));
+    binaryWriteIn(ui -> resulIEEE, ConversorIEEE754::floattoIEESign(result), ConversorIEEE754::floattoIEEExp(result), ConversorIEEE754::floattoIEEMantissa(result));
+    hexWriteIn(ui->resulHex, ConversorIEEE754::floattoIEESign(result), ConversorIEEE754::floattoIEEExp(result), ConversorIEEE754::floattoIEEMantissa(result));
+
+
 }
 
+float MainWindow::multiplyOperation(float n1, float n2){
 
-float MainWindow::multiplyOperation(float n1, float n2) {
+    unsigned int signo1 = ConversorIEEE754::floattoIEESign(n1);
+    unsigned int signo2 = ConversorIEEE754::floattoIEESign(n2);
 
-    /*************************** COMENTAR TODO POR APARTADOS, ESTÁ HECHO DIRECTAMENTE ******************************/
+    unsigned int expo1 = ConversorIEEE754::floattoIEEExp(n1);
+    unsigned int expo2 = ConversorIEEE754::floattoIEEExp(n2);
 
-    unsigned int expo1 = IEEE754Converter::floatToIEEExp(n1);
-    unsigned int expo2 = IEEE754Converter::floatToIEEExp(n2);
+    unsigned int mantissa1 = ConversorIEEE754::floattoIEEMantissa(n1) + bitPos.at(23);
+    unsigned int mantissa2 = ConversorIEEE754::floattoIEEMantissa(n2) + bitPos.at(23);
 
-    unsigned int signo1 = IEEE754Converter::floatToIEESign(n1);
-    unsigned int signo2 = IEEE754Converter::floatToIEESign(n2);
+    //Paso 1:
+    unsigned int signoResul = signo1 ^ signo2;
+    //Paso 2:
+    int expResul = expo1 + expo2  - 0b1111111;
 
-    unsigned int mantissa1 = IEEE754Converter::floatToIEEMantissa(n1) + bitPos.at(23);
-    unsigned int mantissa2 = IEEE754Converter::floatToIEEMantissa(n2) + bitPos.at(23);
+    //Paso 3:
+    //Paso 3i:
+    unsigned int c = 0;
+    unsigned int P = 0;
+    unsigned int A = mantissa1;
 
-    unsigned int signoResul = signo1^signo2;
-
-    int expResul = expo1 + expo2 - 0b1111111;
-
-    unsigned int c = 0, P = 0, A = mantissa1;
-
-    for (int i = 0; i < 24; i++) {
-
-        P += A % 2 * mantissa2;
-        A = (A>>1) + (P % 2)*bitPos.at(23);
-        P = (P>>1) + c * bitPos.at(23);
-        c >>= 1;
+    for(int i = 0; i < 24; i++){
+            P+=A%2*mantissa2;
+            A = (A>>1) + (P%2)*bitPos.at(23);
+            P = (P>>1) + c*bitPos.at(23);
+            c>>=1;
     }
 
-    if ((P & bitPos.at(23)) == 0) {
+    //Paso 3ii:
+
+    if((P & bitPos.at(23))==0){
         P <<= 1;
     }
-    else {
+    else{
         expResul++;
     }
 
-    unsigned int r = (A & bitPos.at(23)) != 0;
+    //Paso 3iii:
+    unsigned int r = (A & bitPos.at(23))!= 0;
 
+    //Paso 3iv:
     unsigned int st = 0;
+    for(int i = 0; i < 23; i++) st |= (A & bitPos.at(i))!= 0;
 
-    for (int i = 0; i < 23; i++) {
-        st |= (A & bitPos.at(i)) != 0;
-    }
+    //Paso 3v:
+    if((r&&st) ||(r&&!st&&P%2)) P+=1;
 
-    if ((r && st) || (r && !st && P%2)) {
-        P+=1;
-    }
-
-    if (expResul > 0b11111111) {
+    //DESBORDAMIENTOS
+    if(expResul>0b11111111){
         return (signoResul)? -Q_INFINITY:Q_INFINITY;
     }
-    else if (expResul < 0) {
+    else if(expResul<0){
+
         unsigned int t = 1 - expResul;
-        P >>= t;
+
+        P >>=t;
+
         expResul = 0;
+
     }
 
-    return IEEE754Converter::IEEtoFloat(signoResul, expResul, P);
+    return ConversorIEEE754::IEEtofloat(signoResul, expResul, P);
 
 }
 
-/************************************ DIVISIÓN ************************************/
-
-
-
-/************************************ MÉTODOS AUXILIARES ************************************/
-unsigned int MainWindow::acarreo(unsigned int mantissa1, unsigned int mantissa2, unsigned int position, unsigned int acarreoAc)
+void MainWindow::on_division_clicked()
 {
-    //Caso base.
-    if (position == 24)
-    {
-        return acarreoAc;
-    }
+    float n1 = ui->op1Real->text().toFloat();
+    float n2 = ui->op2Real->text().toFloat();
 
-    //Comprobaciones.
-    if ((mantissa2 & bitPos.at(position)) != 0 && (mantissa1 & bitPos.at(position)) != 0) {
+    //Pasos previos
 
-        return acarreo(mantissa1, mantissa2, position + 1, 1);
-    }
-    else if ((acarreoAc != 0 && (mantissa1 & bitPos.at(position)) != 0) || (mantissa2 & bitPos.at(position)) != 0){
+    unsigned int signo1 = ConversorIEEE754::floattoIEESign(n1);
+    unsigned int signo2 = ConversorIEEE754::floattoIEESign(n2);
 
-        return acarreo(mantissa1, mantissa2, position + 1, 1);
-    }
-    else {
+    unsigned int expo1 = ConversorIEEE754::floattoIEEExp(n1);
+    unsigned int expo2 = ConversorIEEE754::floattoIEEExp(n2);
 
-        return acarreo(mantissa1, mantissa2, position + 1, 0);
+    unsigned int mantissa1 = ConversorIEEE754::floattoIEEMantissa(n1);// + bitPos.at(23);
+    unsigned int mantissa2 = ConversorIEEE754::floattoIEEMantissa(n2);// + bitPos.at(23);
+
+
+
+
+
+
+}
+
+float MainWindow::denormalCalculator(unsigned int sign, unsigned int mantissa){
+    float preMantissa =1-ConversorIEEE754::IEEtofloat(0,127,mantissa);
+    if(sign){
+        return mantissa * 1.1754944e-38;//2^-126 para la alu
+    }else{
+        return mantissa * -1.1754944e-38;//-2^-126 para la alu
     }
 }
 
-void MainWindow::bNumWrite(QLineEdit* objective, unsigned int signo, unsigned int expo, unsigned int mantissa)
+void MainWindow::bNumWrite(QLineEdit* objetive, unsigned int signo, unsigned int expo, unsigned int mantissa)
 {
     QString bNum;
 
-    for(int i = 0; i < 23; i++)
-    {
-        bNum.push_front(QString::fromStdString(std::to_string(mantissa % 2)));
-        mantissa /= 2;
+    for(int i =0;i< 23;i++){
+        bNum.push_front(QString::fromStdString(std::to_string(mantissa%2)));
+        mantissa/=2;
     }
 
-    for(int i = 0; i < 8; i++)
-    {
-        bNum.push_front(QString::fromStdString(std::to_string(expo % 2)));
+    for(int i=0;i<8;i++){
+        bNum.push_front(QString::fromStdString(std::to_string(expo%2)));
         expo /= 2;
     }
 
     bNum.push_front(QString::fromStdString(std::to_string(signo)));
 
+
     bNum.push_front("0b");
-    objective -> setText(bNum);
+
+    objetive->setText(bNum);
 }
 
-void MainWindow::hexNumWrite(QLineEdit* objective, unsigned int signo, unsigned int expo, unsigned int mantissa)
+unsigned int MainWindow::acarreo(unsigned int mantissa1, unsigned int mantissa2, unsigned int position, unsigned int acarreoAc)
 {
-    QString hexNum;
+    //Caso base.
+    if(position == 24) return acarreoAc;
+    //Comprobaciones.
+    if((mantissa2 & bitPos.at(position)) != 0 && (mantissa1 & bitPos.at(position)) != 0) return calcularAcarreo(mantissa1, mantissa2, position+1, 1);
+    else if(((mantissa2 & bitPos.at(position)) != 0 || (mantissa1 & bitPos.at(position)) != 0) && acarreoAc != 0) return calcularAcarreo(mantissa1, mantissa2, position+1, 1);
+    else return calcularAcarreo(mantissa1, mantissa2, position+1, 0);
 
-    unsigned int chain = (signo << 31) + (expo << 23) + (mantissa);
-
-    for(int i = 0; i < 8; i++)
-    {
-        unsigned int mod = chain % 16;
-
-        switch (mod) {
-
-        case 10:
-            hexNum.push_front('A');
-            break;
-        case 11:
-            hexNum.push_front('B');
-            break;
-        case 12:
-            hexNum.push_front('C');
-            break;
-        case 13:
-            hexNum.push_front('D');
-            break;
-        case 14:
-            hexNum.push_front('E');
-            break;
-        case 15:
-            hexNum.push_front('F');
-            break;
-
-        default:
-            hexNum.push_front(QString::fromStdString(std::to_string(mod)));
-        }
-
-
-        chain >>= 4;
-    }
-
-    objective -> setText("0x" + hexNum);
 }
 
-//char MainWindow::hexCheck(int check)
-//{
-//    switch(check)
-//    {
-//    case 10:
-//        return 'A';
-//    case 11:
-//        return 'B';
-//    case 12:
-//        return 'C';
-//    case 13:
-//        return 'D';
-//    case 14:
-//        return 'E';
-//    case 15:
-//        return 'F';
-//    default:
-
-//    }
-//}
-
-//bool MainWindow::hexBoolCheck(int check)
-//{
-//    return check == 10 || check == 11 || check == 12 || check == 13 || check == 14 || check == 15;
-//}
-
-void MainWindow::on_pushButton_clicked()
+void MainWindow::on_pushButtom_clicked()
 {
     ui->op1Real->setText("");
     ui->op2Real->setText("");
     ui->op1IEEE->setText("");
-    ui->op1Hex->setText("");
     ui->op2IEEE->setText("");
+    ui->op1Hex->setText("");
     ui->op2Hex->setText("");
     ui->resulReal->setText("");
     ui->resulIEEE->setText("");
     ui->resulHex->setText("");
+
 }
 
+void MainWindow::hexNumWrite(QLineEdit* child, unsigned int sign, unsigned int exp, unsigned int mantissa){
 
+    QString stringHex;
+
+    unsigned int aux = (sign << 31) + (exp << 23) + (mantissa);
+
+    for(int i = 0; i < 8; i++) {
+
+        unsigned int mod = aux%16;
+
+        switch (mod) {
+
+        case 10: stringHex.push_front('A');break;
+        case 11: stringHex.push_front('B');break;
+        case 12: stringHex.push_front('C');break;
+        case 13: stringHex.push_front('D');break;
+        case 14: stringHex.push_front('E');break;
+        case 15: stringHex.push_front('F');break;
+
+        default: stringHex.push_front(QString::fromStdString(std::to_string(mod)));
+
+        }
+
+        aux >>= 4;
+
+    }
+    child->setText("0x"+stringHex);
+
+
+}
 
