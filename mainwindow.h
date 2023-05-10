@@ -27,6 +27,7 @@ private slots:
     void on_Reset_clicked();
 
 private:
+    QString resultado;
 
     float denormalCalculator(unsigned int sign, unsigned int mantissa);
     

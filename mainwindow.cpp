@@ -29,13 +29,30 @@ void MainWindow::on_suma_clicked()
 
     float salida = addOperation(op1,op2);
 
+    /*Muestra el resultado en notación científica en los números grandes*/
+    QString resultado;
+
+    if (salida >= 1e7 || salida <= -10000000000){
+        resultado = QString::number(salida, 'E', 0);
+
+        if (salida >= 1e7) {
+            resultado.replace("+", "");
+        }
+    }
+    else {
+        resultado = QString::number(salida, 'f');
+    }
+
+
+
     binaryWriteIn( ui->op1IEEE, IEEE754Converter::floattoIEESign(op1), IEEE754Converter::floattoIEEExp(op1), IEEE754Converter::floattoIEEMantisa(op1));
     hexWriteIn(ui->op1Hex,  IEEE754Converter::floattoIEESign(op1), IEEE754Converter::floattoIEEExp(op1), IEEE754Converter::floattoIEEMantisa(op1));
 
     binaryWriteIn( ui->op2IEEE,  IEEE754Converter::floattoIEESign(op2), IEEE754Converter::floattoIEEExp(op2), IEEE754Converter::floattoIEEMantisa(op2));
     hexWriteIn(ui->op2Hex, IEEE754Converter::floattoIEESign(op2), IEEE754Converter::floattoIEEExp(op2), IEEE754Converter::floattoIEEMantisa(op2));
 
-    ui->resulReal->setText(QString::fromStdString(std::to_string(salida)));
+    ui->resulReal->setText(resultado);
+    //ui->resulReal->setText(QString::fromStdString(std::to_string(salida)));
     binaryWriteIn(ui -> resulIEEE, IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
     hexWriteIn(ui->resulHex, IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
 

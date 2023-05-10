@@ -235,7 +235,7 @@
      <rect>
       <x>140</x>
       <y>350</y>
-      <width>301</width>
+      <width>411</width>
       <height>25</height>
      </rect>
     </property>
@@ -251,9 +251,9 @@
    <widget class="QLineEdit" name="resulIEEE">
     <property name="geometry">
      <rect>
-      <x>460</x>
+      <x>570</x>
       <y>350</y>
-      <width>381</width>
+      <width>321</width>
       <height>25</height>
      </rect>
     </property>
@@ -269,9 +269,9 @@
    <widget class="QLineEdit" name="resulHex">
     <property name="geometry">
      <rect>
-      <x>860</x>
+      <x>910</x>
       <y>350</y>
-      <width>191</width>
+      <width>141</width>
       <height>25</height>
      </rect>
     </property>
