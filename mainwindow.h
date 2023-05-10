@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QLineEdit>
 #include "ieee754converter.h"
+#include <math.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
