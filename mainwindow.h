@@ -35,11 +35,15 @@ private:
 
     float multiplyOperation(float op1, float op2);
 
+    float divisionOperation(float op1, float op2);
+
     void binaryWriteIn(QLineEdit* child,  unsigned int sign, unsigned int exp, unsigned int mantisa);
 
     unsigned int calcularAcarreo(unsigned int manA, unsigned int manB, unsigned int pos, unsigned int acarreoActual);
 
     void hexWriteIn(QLineEdit* child,  unsigned int sign, unsigned int exp, unsigned int mantisa);
+
+    QString toMantisa(unsigned int mantisa);
 
     Ui::MainWindow *ui;
 

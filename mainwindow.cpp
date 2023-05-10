@@ -13,6 +13,15 @@ MainWindow::MainWindow(QWidget *parent)
     bitPos.push_back(1);
 
     for(int i = 1; i < 32; i++) bitPos.push_back(2*bitPos.at(i-1));
+
+    ui->op1IEEE->setReadOnly(true);
+    ui->op1Hex->setReadOnly(true);
+    ui->op2IEEE->setReadOnly(true);
+    ui->op2Hex->setReadOnly(true);
+    ui->resulReal->setReadOnly(true);
+    ui->resulIEEE->setReadOnly(true);
+    ui->resulHex->setReadOnly(true);
+
 }
 
 MainWindow::~MainWindow()
@@ -301,10 +310,48 @@ float MainWindow::multiplyOperation(float op1, float op2){
 
 void MainWindow::on_division_clicked()
 {
+
     float op1 = ui->op1Real->text().toFloat();
+
     float op2 = ui->op2Real->text().toFloat();
 
-    //Pasos previos
+    float salida = divisionOperation(op1,op2);
+
+    binaryWriteIn( ui->op1IEEE, IEEE754Converter::floattoIEESign(op1), IEEE754Converter::floattoIEEExp(op1), IEEE754Converter::floattoIEEMantisa(op1));
+    hexWriteIn(ui->op1Hex,  IEEE754Converter::floattoIEESign(op1), IEEE754Converter::floattoIEEExp(op1), IEEE754Converter::floattoIEEMantisa(op1));
+
+    binaryWriteIn( ui->op2IEEE,  IEEE754Converter::floattoIEESign(op2), IEEE754Converter::floattoIEEExp(op2), IEEE754Converter::floattoIEEMantisa(op2));
+    hexWriteIn(ui->op2Hex, IEEE754Converter::floattoIEESign(op2), IEEE754Converter::floattoIEEExp(op2), IEEE754Converter::floattoIEEMantisa(op2));
+
+
+    if(op2 == 0){
+        ui -> resulIEEE -> setText("NaN");
+        ui -> resulReal -> setText("NaN");
+        ui -> resulHex -> setText("NaN");
+    }else if(salida == INFINITY){
+        ui -> resulReal -> setText("inf");
+        binaryWriteIn(ui -> resulIEEE, IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
+        hexWriteIn(ui->resulHex, IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
+    }else if(salida == -INFINITY){
+        ui -> resulReal -> setText("-inf");
+        binaryWriteIn(ui -> resulIEEE, IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
+        hexWriteIn(ui->resulHex, IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
+    }else{
+        ui->resulReal->setText(QString::fromStdString(std::to_string(salida)));
+        binaryWriteIn(ui -> resulIEEE, IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
+        hexWriteIn(ui->resulHex, IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
+    }
+}
+
+float MainWindow::divisionOperation(float op1, float op2)
+{
+    if(IEEE754Converter::floattoIEEExp(op1) > 254 && IEEE754Converter::floattoIEEExp(op2)){
+        return INFINITY;
+    }
+
+    if(op1 == op2){
+        return 1;
+    }
 
     unsigned int signoA = IEEE754Converter::floattoIEESign(op1);
     unsigned int signoB = IEEE754Converter::floattoIEESign(op2);
@@ -312,14 +359,96 @@ void MainWindow::on_division_clicked()
     unsigned int expA = IEEE754Converter::floattoIEEExp(op1);
     unsigned int expB = IEEE754Converter::floattoIEEExp(op2);
 
-    unsigned int manA = IEEE754Converter::floattoIEEMantisa(op1);// + bitPos.at(23);
-    unsigned int manB = IEEE754Converter::floattoIEEMantisa(op2);// + bitPos.at(23);
+    unsigned int manA = IEEE754Converter::floattoIEEMantisa(op1) + bitPos.at(23);
+    unsigned int manB = IEEE754Converter::floattoIEEMantisa(op2) + bitPos.at(23);
 
+    //Paso 1: Hacemos el escalado de mantissas, elimnando todos los ceros a partir del último uno y múltiplicando desde 0 hasta -infinito
 
+    QString mantisaA = toMantisa(manA);
+    QString mantisaB = toMantisa(manB);
 
+    float escaladoA = 0, escaladoB = 0;
 
+    for(int i = 0; i < 24; i++){
+        if(mantisaA.at(i).digitValue() == 1) {
+            escaladoA += 1 * pow(2, -i);
+        }
+        if(mantisaB.at(i).digitValue() == 1) {
+            escaladoB += 1 * pow(2, -i);
+        }
+    }
 
+    //Paso 2: Comprobamos si escaladoB está en una de estas dos franjas: [1 , 1.25) = 1 y [1.25 , 2) = 0.8.
 
+    float Bprima = 0;
+
+    if(1 >= escaladoB && escaladoB < 1.25){
+        Bprima = 1;
+    }else{
+        Bprima = 0.8;
+    }
+
+    //Paso 3: Obtenemos Xo e Yo. Lo hacemos simplemente multiplicando su escalado por Bprima.
+
+    float Xo = multiplyOperation(escaladoA, Bprima);
+    float Yo = multiplyOperation(escaladoB, Bprima);
+    float r = addOperation(2 , -Yo);
+
+    float Ax1B = 0;
+
+    //Paso 4: Iteramos estos valores hasta que la resta de Xi - Xi-1 sea menor que 10 ^ -4 (0.0001).
+
+    bool cond = true;
+
+    while(cond){
+        float Xnueva = multiplyOperation(Xo, r);
+        float Ynueva = multiplyOperation(Yo, r);
+
+        if((addOperation(Xnueva, -Xo)) > 0.0001 || addOperation(Xnueva, -Xo) == 0){
+            cond = false;
+            Ax1B = Xnueva;
+        }
+
+        Xo = Xnueva;
+
+        r = addOperation(2, -Ynueva);
+    }
+
+    //Paso 5: Calculamos con un XOR el valor del signo de la división.
+
+    unsigned int divSigno = signoA != signoB;
+
+    //Paso 6:
+
+    unsigned int divExp = expA - expB + IEEE754Converter::floattoIEEExp(Ax1B);
+
+    if(divExp > 254 && divSigno == 0)
+    {
+        return INFINITY;
+    }else if(divExp > 254 && divSigno == 1)
+    {
+        return -INFINITY;
+    }
+
+    //Paso 7
+
+    unsigned int divMantisa = IEEE754Converter::floattoIEEMantisa(Ax1B);
+
+    return IEEE754Converter::IEEtofloat(divSigno, divExp, divMantisa);
+}
+
+QString MainWindow::toMantisa(unsigned int mantisa)
+{
+    QString binaryNumber;
+
+    for(int i =0;i< 23;i++){
+        binaryNumber.push_front(QString::fromStdString(std::to_string(mantisa%2)));
+        mantisa/=2;
+    }
+
+    binaryNumber.push_front("1");
+
+    return binaryNumber;
 }
 
 float MainWindow::denormalCalculator(unsigned int sign, unsigned int mantissa){
