@@ -230,13 +230,13 @@ float MainWindow::multiplyOperation(float op1, float op2){
     unsigned int manA = IEEE754Converter::floattoIEEMantisa(op1) + bitPos.at(23);
     unsigned int manB = IEEE754Converter::floattoIEEMantisa(op2) + bitPos.at(23);
 
-    //Paso 1:
+    //Paso 1: Calculamos el signo del producto
     unsigned int signoR = signoA ^ signoB;
-    //Paso 2:
+    //Paso 2: calculamos el exponente del producto
     int expR = expA + expB - 0b1111111;
 
-    //Paso 3:
-    //Paso 3i:
+    //Paso 3: Cálculo de la mantisa del producto, mp
+    //Paso 3i: Se utiliza el algoritmo del producto de enteros sin signo
     unsigned int c = 0;
     unsigned int P = 0;
     unsigned int A = manA;
@@ -249,34 +249,48 @@ float MainWindow::multiplyOperation(float op1, float op2){
     }
 
     //Paso 3ii:
-
+    //Si Pn-1 = 0 -> desplazar P (P, A ) un bit a la izquierda
     if((P & bitPos.at(23))==0){
         P <<= 1;
     }
-    else{
+    else{ //Si no se suma 1 al exponente del producto
         expR++;
     }
 
-    //Paso 3iii:
+    //Paso 3iii: bit de redondeo -> r = An-1
     unsigned int r = (A & bitPos.at(23))!= 0;
 
-    //Paso 3iv:
+    //Paso 3iv: Bit sticky -> st = OR(An-2, An-3, ..., A0) (Siendo n el nº de bits de la mantisa)
     unsigned int st = 0;
     for(int i = 0; i < 23; i++) st |= (A & bitPos.at(i))!= 0;
 
-    //Paso 3v:
+    //Paso 3v: Redondeo: Si (r=1 y st=1) O (r=1 y st=0 y P0=1) -> P = P + 1
     if((r&&st) ||(r&&!st&&P%2)) P+=1;
 
     //DESBORDAMIENTOS
+    //Hay desbordamiento a infinito (overflow) cuando el exponente del producto es mayor que el máximo representable
+    /*  ||
+     *  ||
+     */
+
+    //Tratamiento de desbordamiento a cero (underflow)
+
     if(expR>0b11111111){
         return (signoR)? -Q_INFINITY:Q_INFINITY;
     }
+    //Si exponenteProducto < exponenteMínimo
     else if(expR<0){
 
-        unsigned int t = 1 - expR;
+        unsigned int t = 1 - expR; // t = exponenteMínimo - exponenteProducto
 
+        //Si t >= nº bits mantisa -> hay underflow (porque se desplaza toda la mantisa)
+
+        //Si no:
+        //Desplaza aritméticamente P (P,A) t bits a la derecha
+        //Nota: el resultado será un valor denormal
         P >>=t;
 
+        //ExponenteProducto = exponenteMínimo
         expR = 0;
 
     }
