@@ -102,6 +102,7 @@ float MainWindow::addOperation(float op1, float op2){
     unsigned int P = manB;
     
     //6. Asignamos los bits de guarda, sticky y round solamente si d es mayor o igual a 3 y estrictamente menor que 25.
+    //Ej: Si d = 7 y P = 010110000000000000000000 -> g = 0 (d-1=6, contamos 6 bits desde la DERECHA); el bit r la posición d-2, sticky OR de cada bit desde el bit d-3 hasta el bit 0
     if(d>=3 && d < 25){
         g = (bitPos.at(d-1)&P)!=0;
         r = (bitPos.at(d-2)&P)!=0;
@@ -238,6 +239,7 @@ float MainWindow::multiplyOperation(float op1, float op2){
     }
 
     //Paso 3ii:
+    //P y A tienen 24 bits en la multiplicación
     //Si Pn-1 = 0 -> desplazar P (P, A ) un bit a la izquierda
     if((P & bitPos.at(23))==0){
         P <<= 1;
@@ -267,6 +269,7 @@ float MainWindow::multiplyOperation(float op1, float op2){
     if(expR>0b11111111){
         return (signoR)? -Q_INFINITY:Q_INFINITY;
     }
+    //DENORMALES
     //Si exponenteProducto < exponenteMínimo
     else if(expR<0){
 
@@ -301,7 +304,7 @@ void MainWindow::on_division_clicked()
     hexWriteIn(ui->op2Hex, IEEE754Converter::floattoIEESign(op2), IEEE754Converter::floattoIEEExp(op2), IEEE754Converter::floattoIEEMantisa(op2));
 
 
-    if(op2 == 0){ //Comrpobamos si el segundo operando era 2, en tal caso lo consideramos como Not a Number (NaN)
+    if(op2 == 0){ //Comrpobamos si el segundo operando era 0, en tal caso lo consideramos como Not a Number (NaN)
         ui -> resulIEEE -> setText("NaN");
         ui -> resulReal -> setText("NaN");
         ui -> resulHex -> setText("NaN");
@@ -370,7 +373,7 @@ float MainWindow::divisionOperation(float op1, float op2)
     float Yo = multiplyOperation(escaladoB, Bprima);
     float r = addOperation(2 , -Yo);
 
-    float Ax1B = 0;
+    float Ax1B = 0; //A x el inverso de B'
 
     //Paso 4: Iteramos estos valores hasta que la resta de Xi - Xi-1 sea menor que 10 ^ -4 (0.0001).
 
@@ -388,13 +391,15 @@ float MainWindow::divisionOperation(float op1, float op2)
         Xo = Xnueva; //En caso de no haberse cumplido la condición, Xnueva será el nuevo valor de Xo, el cual será usado para la resta con la siguiente Xnueva.
 
         r = addOperation(2, -Ynueva); //r, la cual es usada para calcular X/Y nueva, se obtiene restando 2 - Ynueva.
+
+        Yo = Ynueva;
     }
 
     //Paso 5: Calculamos con un XOR el valor del signo de la división.
 
     unsigned int divSigno = signoA != signoB;
 
-    //Paso 6 Obtenemos el exponente de la división restando exponente de A - exponente de B y sumándole el exponente de Bprima:
+    //Paso 6 Obtenemos el exponente de la división restando exponente de A - exponente de B y sumándole el exponente de Bprima(Ax1B):
 
     unsigned int divExp = expA - expB + IEEE754Converter::floattoIEEExp(Ax1B); //Realizamos las operaciones normales ya que nuestro método de la ALU opera con floats y los valores dados son ints.
 
