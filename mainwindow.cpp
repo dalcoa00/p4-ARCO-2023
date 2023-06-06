@@ -52,15 +52,27 @@ void MainWindow::on_suma_clicked()
         resultado = QString::number(salida, 'f');
     }
 
-    binaryWriteIn( ui->op1IEEE, IEEE754Converter::floattoIEESign(op1), IEEE754Converter::floattoIEEExp(op1), IEEE754Converter::floattoIEEMantisa(op1));
-    hexWriteIn(ui->op1Hex,  IEEE754Converter::floattoIEESign(op1), IEEE754Converter::floattoIEEExp(op1), IEEE754Converter::floattoIEEMantisa(op1));
+    QString op1IEEE = aStringBinario(IEEE754Converter::floattoIEESign(op1), IEEE754Converter::floattoIEEExp(op1), IEEE754Converter::floattoIEEMantisa(op1));
+    ui->op1IEEE->setText(op1IEEE);
 
-    binaryWriteIn( ui->op2IEEE,  IEEE754Converter::floattoIEESign(op2), IEEE754Converter::floattoIEEExp(op2), IEEE754Converter::floattoIEEMantisa(op2));
-    hexWriteIn(ui->op2Hex, IEEE754Converter::floattoIEESign(op2), IEEE754Converter::floattoIEEExp(op2), IEEE754Converter::floattoIEEMantisa(op2));
+    QString op2IEEE = aStringBinario(IEEE754Converter::floattoIEESign(op2), IEEE754Converter::floattoIEEExp(op2), IEEE754Converter::floattoIEEMantisa(op2));
+    ui->op2IEEE->setText(op2IEEE);
+
+
+    QString op1Hex = aStringHexadecimal(IEEE754Converter::floattoIEESign(op1), IEEE754Converter::floattoIEEExp(op1), IEEE754Converter::floattoIEEMantisa(op1));
+    ui->op1Hex->setText(op1Hex);
+
+    QString op2Hex = aStringHexadecimal(IEEE754Converter::floattoIEESign(op2), IEEE754Converter::floattoIEEExp(op2), IEEE754Converter::floattoIEEMantisa(op2));
+    ui->op2Hex->setText(op2Hex);
+
 
     ui->resulReal->setText(resultado);
-    binaryWriteIn(ui -> resulIEEE, IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
-    hexWriteIn(ui->resulHex, IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
+
+    QString resulIEEE = aStringBinario(IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
+    ui->resulIEEE->setText(resulIEEE);
+
+    QString resulHex = aStringHexadecimal(IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
+    ui->resulHex->setText(resulHex);
 }
 
 float MainWindow::addOperation(float op1, float op2){
@@ -200,15 +212,39 @@ void MainWindow::on_multiplicacion_clicked()
 
     float salida = multiplyOperation(op1,op2);
 
-    binaryWriteIn( ui->op1IEEE, IEEE754Converter::floattoIEESign(op1), IEEE754Converter::floattoIEEExp(op1), IEEE754Converter::floattoIEEMantisa(op1));
-    hexWriteIn(ui->op1Hex,  IEEE754Converter::floattoIEESign(op1), IEEE754Converter::floattoIEEExp(op1), IEEE754Converter::floattoIEEMantisa(op1));
+    QString op1IEEE = aStringBinario(IEEE754Converter::floattoIEESign(op1), IEEE754Converter::floattoIEEExp(op1), IEEE754Converter::floattoIEEMantisa(op1));
+    ui->op1IEEE->setText(op1IEEE);
 
-    binaryWriteIn( ui->op2IEEE,  IEEE754Converter::floattoIEESign(op2), IEEE754Converter::floattoIEEExp(op2), IEEE754Converter::floattoIEEMantisa(op2));
-    hexWriteIn(ui->op2Hex, IEEE754Converter::floattoIEESign(op2), IEEE754Converter::floattoIEEExp(op2), IEEE754Converter::floattoIEEMantisa(op2));
+    QString op2IEEE = aStringBinario(IEEE754Converter::floattoIEESign(op2), IEEE754Converter::floattoIEEExp(op2), IEEE754Converter::floattoIEEMantisa(op2));
+    ui->op2IEEE->setText(op2IEEE);
 
-    ui->resulReal->setText(QString::fromStdString(std::to_string(salida)));
-    binaryWriteIn(ui -> resulIEEE, IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
-    hexWriteIn(ui->resulHex, IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
+
+    QString op1Hex = aStringHexadecimal(IEEE754Converter::floattoIEESign(op1), IEEE754Converter::floattoIEEExp(op1), IEEE754Converter::floattoIEEMantisa(op1));
+    ui->op1Hex->setText(op1Hex);
+
+    QString op2Hex = aStringHexadecimal(IEEE754Converter::floattoIEESign(op2), IEEE754Converter::floattoIEEExp(op2), IEEE754Converter::floattoIEEMantisa(op2));
+    ui->op2Hex->setText(op2Hex);
+
+    QString resultado;
+
+    if (salida >= 1e7 || salida <= -10000000000){
+        resultado = QString::number(salida, 'E', 0);
+
+        if (salida >= 1e7) {
+            resultado.replace("+", "");
+        }
+    }
+    else {
+        resultado = QString::number(salida, 'f');
+    }
+
+    ui->resulReal->setText(resultado);
+
+    QString resulIEEE = aStringBinario(IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
+    ui->resulIEEE->setText(resulIEEE);
+
+    QString resulHex = aStringHexadecimal(IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
+    ui->resulHex->setText(resulHex);
 }
 
 float MainWindow::multiplyOperation(float op1, float op2){
@@ -242,17 +278,33 @@ float MainWindow::multiplyOperation(float op1, float op2){
 
     /*Zona crítica en la modificación del código!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
     for (int i = 0; i < 24; i++) {
-        unsigned int bitMenosSignif = A % 2;
-        P = P + bitMenosSignif * man2; // P+=A%2*man2;
+        unsigned int bitMenosSignif = A & 1; // Obtener el bit menos significativo de A
 
-        unsigned int bitMenosSignifProd = P % 2;
-        A = A >> 1;
-        A = A + bitMenosSignifProd * bitPos.at(23); //A = (A>>1) + (P%2)*bitPos.at(23);
+        if (bitMenosSignif != 0) {
+            P = P + man2; // Sumar man2 a P si el bit menos significativo de A es 1
+        }
 
-        P = P >> 1;
-        P = P + c * bitPos.at(23); //P = (P>>1) + c*bitPos.at(23);
+        A = A >> 1; // Desplazar A hacia la derecha 1 bit
 
-        c = c >> 1; //c>>=1;
+        c = P & (1 << 24); // Obtener el bit de carry
+
+        P = P >> 1; // Desplazar P hacia la derecha 1 bit
+
+        if (c != 0) {
+            P = P | (1 << 23); // Establecer el bit más significativo de P si hubo carry
+        }
+
+//        unsigned int bitMenosSignif = A % 2;
+//        P = P + bitMenosSignif * man2; // P+=A%2*man2;
+
+//        unsigned int bitMenosSignifProd = P % 2;
+//        A = A >> 1;
+//        A = A + bitMenosSignifProd * bitPos.at(23); //A = (A>>1) + (P%2)*bitPos.at(23);
+
+//        P = P >> 1;
+//        P = P + c * bitPos.at(23); //P = (P>>1) + c*bitPos.at(23);
+
+//        c = c >> 1; //c>>=1;
 
     }
 
@@ -297,13 +349,13 @@ float MainWindow::multiplyOperation(float op1, float op2){
     }
 
     //3v.ii. Comprobación de si se produce desbordamiento
-    int desbordamiento = calculaDesbordamiento(expR, P);
+    int desbordamiento = calculaDesbordamiento(expR);
 
     if (desbordamiento == 0) {  //overflow
         return Q_INFINITY;
     }
     else if (desbordamiento == 1) { //underflow
-        unsigned int t = 1 - expR; // t = exponenteMínimo - exponenteProducto
+        unsigned int t = 0 - expR; // t = exponenteMínimo - exponenteProducto
 
         //Si t >= nº bits mantisa -> hay underflow (porque se desplaza toda la mantisa)
 
@@ -321,19 +373,19 @@ float MainWindow::multiplyOperation(float op1, float op2){
     //3v.iiii. manP = P;
     unsigned int manP = P;
 
-    return IEEE754Converter::IEEtofloat(signoR ,expR, manP); //Cambiar P por manP
+    return IEEE754Converter::IEEtofloat(signoR ,expR, manP);
 
 }
 
-int MainWindow::calculaDesbordamiento(unsigned int signoResul, int expResul, unsigned int P) {
+int MainWindow::calculaDesbordamiento(int expResul) {
     /*Para calcular el resultado, primero se comprueba si se produce desbordamiento*/
 
     //Desbordamiento a infinito (overflow) cuando el exponenteResultado > expMaximoRepresentable
-    if(expResul>0b11111111){
+    if (expResul > 0b11111111){
         return 0;
     }
     //Desbordamiento a 0 (underflow)
-    else if(expResul<0){
+    else if (expResul < 0){
         return 1;
     }
     else {
@@ -342,8 +394,7 @@ int MainWindow::calculaDesbordamiento(unsigned int signoResul, int expResul, uns
     }
 }
 
-void MainWindow::on_division_clicked()
-{
+void MainWindow::on_division_clicked() {
 
     float op1 = ui->op1Real->text().toFloat();
 
@@ -351,29 +402,44 @@ void MainWindow::on_division_clicked()
 
     float salida = divisionOperation(op1,op2);
 
-    binaryWriteIn( ui->op1IEEE, IEEE754Converter::floattoIEESign(op1), IEEE754Converter::floattoIEEExp(op1), IEEE754Converter::floattoIEEMantisa(op1));
-    hexWriteIn(ui->op1Hex,  IEEE754Converter::floattoIEESign(op1), IEEE754Converter::floattoIEEExp(op1), IEEE754Converter::floattoIEEMantisa(op1));
+    QString op1IEEE = aStringBinario(IEEE754Converter::floattoIEESign(op1), IEEE754Converter::floattoIEEExp(op1), IEEE754Converter::floattoIEEMantisa(op1));
+    ui->op1IEEE->setText(op1IEEE);
 
-    binaryWriteIn( ui->op2IEEE,  IEEE754Converter::floattoIEESign(op2), IEEE754Converter::floattoIEEExp(op2), IEEE754Converter::floattoIEEMantisa(op2));
-    hexWriteIn(ui->op2Hex, IEEE754Converter::floattoIEESign(op2), IEEE754Converter::floattoIEEExp(op2), IEEE754Converter::floattoIEEMantisa(op2));
+    QString op2IEEE = aStringBinario(IEEE754Converter::floattoIEESign(op2), IEEE754Converter::floattoIEEExp(op2), IEEE754Converter::floattoIEEMantisa(op2));
+    ui->op2IEEE->setText(op2IEEE);
 
 
-    if(op2 == 0){ //Comrpobamos si el segundo operando era 0, en tal caso lo consideramos como Not a Number (NaN)
+    QString op1Hex = aStringHexadecimal(IEEE754Converter::floattoIEESign(op1), IEEE754Converter::floattoIEEExp(op1), IEEE754Converter::floattoIEEMantisa(op1));
+    ui->op1Hex->setText(op1Hex);
+
+    QString op2Hex = aStringHexadecimal(IEEE754Converter::floattoIEESign(op2), IEEE754Converter::floattoIEEExp(op2), IEEE754Converter::floattoIEEMantisa(op2));
+    ui->op2Hex->setText(op2Hex);
+
+    if (op2 == 0) { //Comrpobamos si el segundo operando era 0, en tal caso lo consideramos como Not a Number (NaN)
         ui -> resulIEEE -> setText("NaN");
         ui -> resulReal -> setText("NaN");
         ui -> resulHex -> setText("NaN");
-    }else if(salida == INFINITY){ //Si la salida devuelve infinito, estableceremos el resultado real en infinito.
+    }
+    else if (salida == INFINITY) { //Si la salida devuelve infinito, estableceremos el resultado real en infinito.
         ui -> resulReal -> setText("inf");
-        binaryWriteIn(ui -> resulIEEE, IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
-        hexWriteIn(ui->resulHex, IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
-    }else if(salida == -INFINITY){ //Lo mismo que el paso anterior, pero en caso de recibir -Infinito.
+        QString resulIEEE = aStringBinario(IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
+        ui->resulIEEE->setText(resulIEEE);
+        QString resulHexadecimal = aStringHexadecimal(IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
+        ui->resulHex->setText(resulHexadecimal);
+    }
+    else if (salida == -INFINITY) { //Lo mismo que el paso anterior, pero en caso de recibir -Infinito.
         ui -> resulReal -> setText("-inf");
-        binaryWriteIn(ui -> resulIEEE, IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
-        hexWriteIn(ui->resulHex, IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
-    }else{
+        QString resulIEEE = aStringBinario(IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
+        ui->resulIEEE->setText(resulIEEE);
+        QString resulHexadecimal = aStringHexadecimal(IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
+        ui->resulHex->setText(resulHexadecimal);
+    }
+    else {
         ui->resulReal->setText(QString::fromStdString(std::to_string(salida)));
-        binaryWriteIn(ui -> resulIEEE, IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
-        hexWriteIn(ui->resulHex, IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
+        QString resulIEEE = aStringBinario(IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
+        ui->resulIEEE->setText(resulIEEE);
+        QString resulHexadecimal = aStringHexadecimal(IEEE754Converter::floattoIEESign(salida), IEEE754Converter::floattoIEEExp(salida), IEEE754Converter::floattoIEEMantisa(salida));
+        ui->resulHex->setText(resulHexadecimal);
     }
 }
 
@@ -495,25 +561,26 @@ QString MainWindow::toMantisa(unsigned int mantisa)
 //    }
 //}
 
-void MainWindow::binaryWriteIn(QLineEdit* child, unsigned int sign, unsigned int exp, unsigned int mantisa)
-{
-    QString binaryNumber;
+
+//binaryWriteIn( ui->op2IEEE,  IEEE754Converter::floattoIEESign(op2), IEEE754Converter::floattoIEEExp(op2), IEEE754Converter::floattoIEEMantisa(op2));
+QString MainWindow::aStringBinario(unsigned int signo, unsigned int exponente, unsigned int mantisa) {
+    QString numeroBinario;
 
     for(int i =0;i< 23;i++){
-        binaryNumber.push_front(QString::fromStdString(std::to_string(mantisa%2)));
+        numeroBinario.push_front(QString::fromStdString(std::to_string(mantisa%2)));
         mantisa/=2;
     }
 
     for(int i=0;i<8;i++){
-        binaryNumber.push_front(QString::fromStdString(std::to_string(exp%2)));
-        exp /= 2;
+        numeroBinario.push_front(QString::fromStdString(std::to_string(exponente%2)));
+        exponente /= 2;
     }
 
-    binaryNumber.push_front(QString::fromStdString(std::to_string(sign)));
+    numeroBinario.push_front(QString::fromStdString(std::to_string(signo)));
 
-    binaryNumber.push_front("0b");
+    //binaryNumber.push_front("0b");
 
-    child->setText(binaryNumber);
+    return numeroBinario;
 }
 
 unsigned int MainWindow::calcularAcarreo(unsigned int manA, unsigned int manB, unsigned int pos, unsigned int acarreoActual)
@@ -525,8 +592,44 @@ unsigned int MainWindow::calcularAcarreo(unsigned int manA, unsigned int manB, u
     else return calcularAcarreo(manA, manB, pos+1, 0);
 }
 
-void MainWindow::on_Reset_clicked()
-{
+
+
+QString MainWindow::aStringHexadecimal(unsigned int signo, unsigned int exponente, unsigned int mantisa) {
+
+    QString numeroHexadecimal;
+
+    unsigned int aux = (signo << 31) + (exponente << 23) + (mantisa);
+
+    for (int i = 0; i < 8; i++) {
+        unsigned int mod = aux % 16;
+
+        switch (mod) {
+            case 10: numeroHexadecimal.push_front('A');
+                break;
+            case 11: numeroHexadecimal.push_front('B');
+                break;
+            case 12: numeroHexadecimal.push_front('C');
+                break;
+            case 13: numeroHexadecimal.push_front('D');
+                break;
+            case 14: numeroHexadecimal.push_front('E');
+                break;
+            case 15: numeroHexadecimal.push_front('F');
+                break;
+
+            default: numeroHexadecimal.push_front(QString::fromStdString(std::to_string(mod)));
+        }
+
+        aux = aux >> 4;
+    }
+    //numeroBinario.push_front(QString::fromStdString(std::to_string(signo)));
+    numeroHexadecimal.push_front("0x");
+
+    return numeroHexadecimal;
+    //child->setText("0x"+numeroHexadecimal);
+}
+
+void MainWindow::on_Reset_clicked() {
     ui->op1Real->setText("");
     ui->op2Real->setText("");
     ui->op1IEEE->setText("");
@@ -536,27 +639,4 @@ void MainWindow::on_Reset_clicked()
     ui->resulReal->setText("");
     ui->resulIEEE->setText("");
     ui->resulHex->setText("");
-}
-
-void MainWindow::hexWriteIn(QLineEdit* child, unsigned int sign, unsigned int exp, unsigned int mantisa){
-
-    QString stringHex;
-
-    unsigned int aux = (sign << 31) + (exp << 23) + (mantisa);
-
-    for(int i = 0; i < 8; i++) {
-        unsigned int mod = aux%16;
-        switch (mod) 
-        {
-        case 10: stringHex.push_front('A');break;
-        case 11: stringHex.push_front('B');break;
-        case 12: stringHex.push_front('C');break;
-        case 13: stringHex.push_front('D');break;
-        case 14: stringHex.push_front('E');break;
-        case 15: stringHex.push_front('F');break;
-        default: stringHex.push_front(QString::fromStdString(std::to_string(mod)));
-        }
-        aux >>= 4;
-    }
-    child->setText("0x"+stringHex);
 }

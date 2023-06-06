@@ -38,13 +38,13 @@ private:
 
     float divisionOperation(float op1, float op2);
 
-    void binaryWriteIn(QLineEdit* child,  unsigned int sign, unsigned int exp, unsigned int mantisa);
+    QString aStringBinario(unsigned int signo, unsigned int exponente, unsigned int mantisa);
 
     unsigned int calcularAcarreo(unsigned int manA, unsigned int manB, unsigned int pos, unsigned int acarreoActual);
 
-    void hexWriteIn(QLineEdit* child,  unsigned int sign, unsigned int exp, unsigned int mantisa);
+    QString aStringHexadecimal(unsigned int signo, unsigned int exponente, unsigned int mantisa);
 
-    int calculaDesbordamiento(int expResul, unsigned int P);
+    int calculaDesbordamiento(int expResul);
 
     QString toMantisa(unsigned int mantisa);
 
