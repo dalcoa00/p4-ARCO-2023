@@ -40,11 +40,13 @@ private:
 
     void binaryWriteIn(QLineEdit* child,  unsigned int sign, unsigned int exp, unsigned int mantisa);
 
-    unsigned int calcularAcarreo(unsigned int manA, unsigned int manB, unsigned int pos, unsigned int acarreoActual);
+    unsigned int carry(unsigned int manA, unsigned int manB, unsigned int pos, unsigned int acarreoActual);
 
     void hexWriteIn(QLineEdit* child,  unsigned int sign, unsigned int exp, unsigned int mantisa);
 
     int calculaDesbordamiento(int expResul, unsigned int P);
+
+    unsigned int getC2(unsigned int number);
 
     QString toMantisa(unsigned int mantisa);
 
