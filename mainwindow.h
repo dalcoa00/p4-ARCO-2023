@@ -44,6 +44,8 @@ private:
 
     void hexWriteIn(QLineEdit* child,  unsigned int sign, unsigned int exp, unsigned int mantisa);
 
+    int calculaDesbordamiento(int expResul, unsigned int P);
+
     QString toMantisa(unsigned int mantisa);
 
     Ui::MainWindow *ui;

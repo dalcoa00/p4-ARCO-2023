@@ -10,10 +10,6 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    bitPos.push_back(1);
-
-    for(int i = 1; i < 32; i++) bitPos.push_back(2*bitPos.at(i-1));
-
     ui->op1IEEE->setReadOnly(true);
     ui->op1Hex->setReadOnly(true);
     ui->op2IEEE->setReadOnly(true);
@@ -21,6 +17,12 @@ MainWindow::MainWindow(QWidget *parent)
     ui->resulReal->setReadOnly(true);
     ui->resulIEEE->setReadOnly(true);
     ui->resulHex->setReadOnly(true);
+
+    bitPos.push_back(1);
+
+    for(int i = 1; i < 32; i++) {
+        bitPos.push_back(2*bitPos.at(i-1));
+    }
 }
 
 MainWindow::~MainWindow()
@@ -211,68 +213,96 @@ void MainWindow::on_multiplicacion_clicked()
 
 float MainWindow::multiplyOperation(float op1, float op2){
 
-    unsigned int signoA = IEEE754Converter::floattoIEESign(op1);
-    unsigned int signoB = IEEE754Converter::floattoIEESign(op2);
+    unsigned int signo1 = IEEE754Converter::floattoIEESign(op1);
+    unsigned int signo2 = IEEE754Converter::floattoIEESign(op2);
 
-    unsigned int expA = IEEE754Converter::floattoIEEExp(op1);
-    unsigned int expB = IEEE754Converter::floattoIEEExp(op2);
+    unsigned int exp1 = IEEE754Converter::floattoIEEExp(op1);
+    unsigned int exp2 = IEEE754Converter::floattoIEEExp(op2);
 
-    unsigned int manA = IEEE754Converter::floattoIEEMantisa(op1) + bitPos.at(23);
-    unsigned int manB = IEEE754Converter::floattoIEEMantisa(op2) + bitPos.at(23);
+    unsigned int man1 = IEEE754Converter::floattoIEEMantisa(op1) + bitPos.at(23);
+    unsigned int man2 = IEEE754Converter::floattoIEEMantisa(op2) + bitPos.at(23);
 
-    //Paso 1: Calculamos el signo del producto
-    unsigned int signoR = signoA ^ signoB;
-    //Paso 2: calculamos el exponente del producto
-    int expR = expA + expB - 0b1111111;
+    /*              RESULTADOS              */
+    //Cuando el resultado es "NaN" al realizar los cálculos da 0,0000000
 
-    //Paso 3: Cálculo de la mantisa del producto, mp
-    //Paso 3i: Se utiliza el algoritmo del producto de enteros sin signo
+    /*Paso 1: Calculamos el signo del producto*/
+    unsigned int signoR = signo1 ^ signo2;  //***********!!!!!!!!!!!Es multiplicación, no potencia, según el pdf del producto, pero si
+                                            //se multiplica, no hay resultados negativos WTF
+
+    /*Paso 2: calculamos el exponente del producto*/
+    //"0b" quitados de los binarios
+    //expR de int a unsigned int
+    int expR = exp1 + exp2 - 0b1111111; //!!!!!!!!!!!!! no debería sea unsigned int?
+
+    /*Paso 3: Cálculo de la mantisa del producto, mp*/
+    /*Paso 3i: Se utiliza el algoritmo del producto de enteros sin signo*/
     unsigned int c = 0;
     unsigned int P = 0;
-    unsigned int A = manA;
+    unsigned int A = man1;
 
-    for(int i = 0; i < 24; i++){
-            P+=A%2*manB;
-            A = (A>>1) + (P%2)*bitPos.at(23);
-            P = (P>>1) + c*bitPos.at(23);
-            c>>=1;
+    /*Zona crítica en la modificación del código!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+    for (int i = 0; i < 24; i++) {
+        unsigned int bitMenosSignif = A % 2;
+        P = P + bitMenosSignif * man2; // P+=A%2*man2;
+
+        unsigned int bitMenosSignifProd = P % 2;
+        A = A >> 1;
+        A = A + bitMenosSignifProd * bitPos.at(23); //A = (A>>1) + (P%2)*bitPos.at(23);
+
+        P = P >> 1;
+        P = P + c * bitPos.at(23); //P = (P>>1) + c*bitPos.at(23);
+
+        c = c >> 1; //c>>=1;
+
     }
 
-    //Paso 3ii:
+    /*Paso 3ii:*/
     //P y A tienen 24 bits en la multiplicación
     //Si Pn-1 = 0 -> desplazar P (P, A ) un bit a la izquierda
-    if((P & bitPos.at(23))==0){
-        P <<= 1;
+    if ((P & bitPos.at(23)) == 0) {
+        P = P << 1;
     }
-    else{ //Si no se suma 1 al exponente del producto
+    else { //Si no se suma 1 al exponente del producto
         expR++;
     }
 
-    //Paso 3iii: bit de redondeo -> r = An-1
-    unsigned int r = (A & bitPos.at(23))!= 0;
+    /*Paso 3iii: bit de redondeo -> r = An-1*/
+    //Operación bit a bit AND entre A y el bit 23
+    unsigned int bitAbitOpAND = A & bitPos.at(23);
+    unsigned int r; //unsigned int r = (A & bitPos.at(23)) != 0;
 
-    //Paso 3iv: Bit sticky -> st = OR(An-2, An-3, ..., A0) (Siendo n el nº de bits de la mantisa)
-    unsigned int st = 0;
-    for(int i = 0; i < 23; i++) st |= (A & bitPos.at(i))!= 0;
-
-    //Paso 3v: Redondeo: Si (r=1 y st=1) O (r=1 y st=0 y P0=1) -> P = P + 1
-    if((r&&st) ||(r&&!st&&P%2)) P+=1;
-
-    //DESBORDAMIENTOS
-    //Hay desbordamiento a infinito (overflow) cuando el exponente del producto es mayor que el máximo representable
-    /*  ||
-     *  ||
-     */
-
-    //Tratamiento de desbordamiento a cero (underflow)
-
-    if(expR>0b11111111){
-        return (signoR)? -Q_INFINITY:Q_INFINITY;
+    if (bitAbitOpAND != 0) {
+        r = 1;
+    } else {
+        r = 0;
     }
-    //DENORMALES
-    //Si exponenteProducto < exponenteMínimo
-    else if(expR<0){
 
+    /*Paso 3iv: Bit sticky -> st = OR(An-2, An-3, ..., A0) (Siendo n el nº de bits de la mantisa)*/
+    unsigned int st = 0;
+    unsigned int bitAbitOpOR = 0;
+
+    for(int i = 0; i < 23; i++) {
+        bitAbitOpOR = A & bitPos.at(i);
+
+        if (bitAbitOpOR != 0) { //En cuanto un bit es distinto de cero -> sticky = 1 y se sale del bucle
+            st = 1;
+            break;
+        }
+    }
+
+    /*Paso 3v.i: Redondeo: Si (r=1 y st=1) O (r=1 y st=0 y P0=1) -> P = P + 1*/
+    //if((r&&st) ||(r&&!st&&P%2)) P+=1;
+    if ((r == 1 && st == 1) || (r == 1 && st == 0 && (P % 2 != 0))) {
+        P = P + 1;
+    }
+
+    //3v.ii. Comprobación de si se produce desbordamiento
+    int desbordamiento = calculaDesbordamiento(expR, P);
+
+    if (desbordamiento == 0) {  //overflow
+        return Q_INFINITY;
+    }
+    else if (desbordamiento == 1) { //underflow
         unsigned int t = 1 - expR; // t = exponenteMínimo - exponenteProducto
 
         //Si t >= nº bits mantisa -> hay underflow (porque se desplaza toda la mantisa)
@@ -280,12 +310,36 @@ float MainWindow::multiplyOperation(float op1, float op2){
         //Si no:
         //Desplaza aritméticamente P (P,A) t bits a la derecha
         //Nota: el resultado será un valor denormal
-        P >>=t;
+        P = P >> t;
 
         //ExponenteProducto = exponenteMínimo
         expR = 0;
     }
-    return IEEE754Converter::IEEtofloat(signoR, expR, P);
+
+    //3v.iii. Tratamiento cuando hay operandos denormales
+
+    //3v.iiii. manP = P;
+    unsigned int manP = P;
+
+    return IEEE754Converter::IEEtofloat(signoR ,expR, manP); //Cambiar P por manP
+
+}
+
+int MainWindow::calculaDesbordamiento(unsigned int signoResul, int expResul, unsigned int P) {
+    /*Para calcular el resultado, primero se comprueba si se produce desbordamiento*/
+
+    //Desbordamiento a infinito (overflow) cuando el exponenteResultado > expMaximoRepresentable
+    if(expResul>0b11111111){
+        return 0;
+    }
+    //Desbordamiento a 0 (underflow)
+    else if(expResul<0){
+        return 1;
+    }
+    else {
+        //No se produce desbordamiento -> no se hace nada
+        return -1;
+    }
 }
 
 void MainWindow::on_division_clicked()
@@ -432,14 +486,14 @@ QString MainWindow::toMantisa(unsigned int mantisa)
     return binaryNumber;
 }
 
-float MainWindow::denormalCalculator(unsigned int sign, unsigned int mantissa){
-    float preMantissa =1-IEEE754Converter::IEEtofloat(0,127,mantissa);
-    if(sign){
-        return mantissa * 1.1754944e-38;//2^-126 para la alu
-    }else{
-        return mantissa * -1.1754944e-38;//-2^-126 para la alu
-    }
-}
+//float MainWindow::denormalCalculator(unsigned int sign, unsigned int mantissa){
+//    float preMantissa =1-IEEE754Converter::IEEtofloat(0,127,mantissa);
+//    if(sign){
+//        return mantissa * 1.1754944e-38;//2^-126 para la alu
+//    }else{
+//        return mantissa * -1.1754944e-38;//-2^-126 para la alu
+//    }
+//}
 
 void MainWindow::binaryWriteIn(QLineEdit* child, unsigned int sign, unsigned int exp, unsigned int mantisa)
 {
