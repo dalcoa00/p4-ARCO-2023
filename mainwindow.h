@@ -38,13 +38,13 @@ private:
 
     float divisionOperation(float op1, float op2);
 
-    QString aStringBinario(unsigned int signo, unsigned int exponente, unsigned int mantisa);
+    QString toIEEEString(unsigned int signo, unsigned int exponente, unsigned int mantisa);
 
     unsigned int carry(unsigned int manA, unsigned int manB, unsigned int pos, unsigned int acarreoActual);
 
-    QString aStringHexadecimal(unsigned int signo, unsigned int exponente, unsigned int mantisa);
+    QString toHexadecimalString(unsigned int signo, unsigned int exponente, unsigned int mantisa);
 
-    int calculaDesbordamiento(int expResul);
+    int calculateOverflow(int expResul);
 
     unsigned int getC2(unsigned int number);
 
@@ -52,6 +52,6 @@ private:
 
     Ui::MainWindow *ui;
 
-    std::vector<unsigned int> bitPos;
+    std::vector<unsigned int> bits;
 };
 #endif // MAINWINDOW_H
