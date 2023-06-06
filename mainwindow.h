@@ -40,11 +40,13 @@ private:
 
     QString aStringBinario(unsigned int signo, unsigned int exponente, unsigned int mantisa);
 
-    unsigned int calcularAcarreo(unsigned int manA, unsigned int manB, unsigned int pos, unsigned int acarreoActual);
+    unsigned int carry(unsigned int manA, unsigned int manB, unsigned int pos, unsigned int acarreoActual);
 
     QString aStringHexadecimal(unsigned int signo, unsigned int exponente, unsigned int mantisa);
 
     int calculaDesbordamiento(int expResul);
+
+    unsigned int getC2(unsigned int number);
 
     QString toMantisa(unsigned int mantisa);
 

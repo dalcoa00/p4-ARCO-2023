@@ -75,7 +75,8 @@ void MainWindow::on_suma_clicked()
     ui->resulHex->setText(resulHex);
 }
 
-float MainWindow::addOperation(float op1, float op2){
+float MainWindow::addOperation(float op1, float op2)
+{
     //Pasos previos
 
     unsigned int signoA = IEEE754Converter::floattoIEESign(op1);
@@ -95,61 +96,73 @@ float MainWindow::addOperation(float op1, float op2){
     bool compP = false;
 
     //2. Coomprobamos si el exponente de A es menor que el de B, en tal caso, se cambian de valores, pasando op2 a ser el op1, y el op1 a ser el op2.
-    if(expA < expB){
-        expA = IEEE754Converter::floattoIEEExp(op2);
-        expB = IEEE754Converter::floattoIEEExp(op1);
-        manA = IEEE754Converter::floattoIEEMantisa(op2) + bitPos.at(23);
-        manB = IEEE754Converter::floattoIEEMantisa(op1) + bitPos.at(23);
-        signoA = IEEE754Converter::floattoIEESign(op2);
-        signoB = IEEE754Converter::floattoIEESign(op1);
+    if(expB > expA)
+    {
+        unsigned int signoAux = signoA, expAux = expA, manAux = manA;
+        manA = manB, expA = expB, signoA = signoB;
+        manB = manAux, expB = expAux, signoB = signoAux;
         opChanged = true;
     }
     
     //3. El exponente de la suma se convierte ne el exponente de A y "d" es la resta entre ambos exponentes (expA - expB).
-    int expR = expA;
     unsigned int d = expA - expB;
+    int expR = expA;
     
     //4. Comprobamos si los signos son diferentes, en tal caso, la mantisa de B se convierte en su complemento a 2.
-    if(signoA!=signoB) manB = (~manB)%0b1000000000000000000000000+1;
+    if(signoA!=signoB)
+    {
+        manB = getC2(manB);
+    }
 
     //5. Creamos P igualándolo a la mantisa de B.
     unsigned int P = manB;
     
     //6. Asignamos los bits de guarda, sticky y round solamente si d es mayor o igual a 3 y estrictamente menor que 25.
     //Ej: Si d = 7 y P = 010110000000000000000000 -> g = 0 (d-1=6, contamos 6 bits desde la DERECHA); el bit r la posición d-2, sticky OR de cada bit desde el bit d-3 hasta el bit 0
-    if(d>=3 && d < 25){
-        g = (bitPos.at(d-1)&P)!=0;
-        r = (bitPos.at(d-2)&P)!=0;
-        st = (bitPos.at(d-3)&P)!=0;
+    if (d >= 3 && d < 25)
+    {
+        g = (bitPos[d-1] & P) != 0;
+        r = (bitPos[d-2] & P) != 0;
+        st = (bitPos[d-3] & P) != 0;
+
+        for (int i = d-3; i > 0 && !st; i--)
+        {
+            st |= (bitPos[d-i] & P) != 0; //El bit sticky realiza un OR para establecer su valor.
+        }
     }
-    for(int i = d-3; i > 0 && !st; i--) st = st|(bitPos.at(d-i)&P); //El bit sticky realiza un OR para establecer su valor.
     
     //7. Comprobamos de nuevo si los signos son diferentes. En tal caso, desplazamos P a la derecha "d" bits introduciendo unos por la izquierda.
-    if(signoA!=signoB){
-        for(unsigned int i = 0; i < d; i++){
+    if(signoA!=signoB)
+    {
+        for(unsigned int i = 0; i < d; i++)
+        {
             P >>= 1;
             P += bitPos.at(23);
         }
-    }else P = P>>d; //En caso de ser iguales desplazamos P a la derecha "d" bits introduciendo ceros por la izquierda.
-    
+    }else
+    {
+        P >>= d; //En caso de ser iguales desplazamos P a la derecha "d" bits introduciendo ceros por la izquierda.
+    }
     //8. Hacemos que P sea si misma más mantisa de A. El acarreo es el resultado de la suma entre ambas en caso de que haya habido un bit "1" adicional al principio.
-    unsigned int C = 0;
-    C = calcularAcarreo(manA, P, 0, 0);
-    P = manA + P;
+    unsigned int C = carry(manA, P, 0, 0);
+    P += manA;
 
     //9. Comprobamos si los signos son diferentes, si el bit 24 - 1 es 1 y si el acarreo es 0.
-    if(signoA!=signoB && (P & bitPos.at(23)) != 0 && C == 0){
-        P = (~P)%0b1000000000000000000000000+1; //En caso afirmativo realizamos el complemento a 2 de P.
+    bool cond1 = (signoA != signoB);
+    bool cond2 = ((P & bitPos.at(23)) != 0 && C == 0);
+
+    if(cond1 && cond2){
+        P = getC2(P); //En caso afirmativo realizamos el complemento a 2 de P.
         compP = true; // Adicionalmente, decimos que hemos complementado P y es afirmativo.
     }
 
     //10. A diferencia del paso anterior, comprobamos si los signos son iguales y el acarreo es 1.
-    if(signoA == signoB && C==1){
-        st = g | r | st; //Sticky será igual al OR de ground, round y sticky.
+    if(!cond1 && C==1){
+        st |= g | r; //Sticky será igual al OR de ground, round y sticky.
 
-        r = P%2;
+        r = P % 2;
 
-        P = P>>1; //Desplazamos P 1 bit a la derecha con ">>".
+        P >>= 1; //Desplazamos P 1 bit a la derecha con ">>".
         P += bitPos.at(23);
         
         expR++; //Al perder un bit significativo, sumamos 1 al exponente de la suma.
@@ -174,20 +187,21 @@ float MainWindow::addOperation(float op1, float op2){
     }
 
     //11. Redondeamos P comprobando si round y sticky son 1 OR round es 1, sticky 0 y el bit 0 de P es 1.
-    if((r==1 && st == 1)||(r==1 && st == 0 && P%2 == 1)){
-        unsigned int C2 = calcularAcarreo(P, 0b100000000000000000000,0,0); //En tal caso, sacamos el acarreo de P + 1.
-        P = P+1; //Además, ya que nuestro método calcularAcarreo usa binarios, sumamos posteriormente 1 para coincidir con el algoritmo.
+    bool condition1 = (r == 1 && st == 1);
+    bool condition2 = (r == 1 && st == 0 && P % 2 == 1);
 
-        if(C2) { //Comrpobamos si C2 = 1.
-            P >>= 1; //Desplazamos P un bit a la derecha.
-            P += bitPos.at(23);
-            expR++; //El exponente de la suma será sí mismo más uno.
-        }
+    if ((condition1 || condition2) && carry(P, 0b100000000000000000000, 0, 0)) {
+        P = ((P + 1) >> 1) + bitPos.at(23);
+        expR++;
     }
 
     //12. Calculamos el signo del resultado comprobando si el intercambio de Operandos es 0 y si P ha sido complementada.
 
-    signoSuma = (!opChanged && compP) ? signoB:signoA; //En caso afirmativo, el signo de la suma será el signo de B, en cambio, en caso negativo el signo de la suma será el signo de A.
+    if (!opChanged && compP) {
+        signoSuma = signoB; //En caso afirmativo, el signo de la suma será el signo de B, en cambio, en caso negativo el signo de la suma será el signo de A.
+    } else {
+        signoSuma = signoA;
+    }
 
     //DENORMALES
     if(expR>0b11111111){ //En caso de que el exponente sea 128 (o todo 1s), decimos que es Infinito o -Infinito dependiendo de su signo.
@@ -377,7 +391,11 @@ float MainWindow::multiplyOperation(float op1, float op2){
 
 }
 
+<<<<<<< HEAD
 int MainWindow::calculaDesbordamiento(int expResul) {
+=======
+int MainWindow::calculaDesbordamiento(int expResul, unsigned int P) {
+>>>>>>> 921804b42e8e0396e2781d6a9e7f92882be6d1d8
     /*Para calcular el resultado, primero se comprueba si se produce desbordamiento*/
 
     //Desbordamiento a infinito (overflow) cuando el exponenteResultado > expMaximoRepresentable
@@ -538,6 +556,11 @@ float MainWindow::divisionOperation(float op1, float op2)
     return IEEE754Converter::IEEtofloat(divSigno, divExp, divMantisa);
 }
 
+unsigned int MainWindow::getC2(unsigned int number)
+{
+    return ((~number) % 0b1000000000000000000000000) + 1;
+}
+
 QString MainWindow::toMantisa(unsigned int mantisa)
 {
     QString binaryNumber;
@@ -583,13 +606,18 @@ QString MainWindow::aStringBinario(unsigned int signo, unsigned int exponente, u
     return numeroBinario;
 }
 
-unsigned int MainWindow::calcularAcarreo(unsigned int manA, unsigned int manB, unsigned int pos, unsigned int acarreoActual)
+unsigned int MainWindow::carry(unsigned int manA, unsigned int manB, unsigned int pos, unsigned int acarreoActual)
 {
-    if(pos == 24) return acarreoActual;
+    if (pos == 24) {
+        return acarreoActual;
+    }
 
-    if((manB & bitPos.at(pos)) != 0 && (manA & bitPos.at(pos)) != 0) return calcularAcarreo(manA, manB, pos+1, 1);
-    else if(((manB & bitPos.at(pos)) != 0 || (manA & bitPos.at(pos)) != 0) && acarreoActual != 0) return calcularAcarreo(manA, manB, pos+1, 1);
-    else return calcularAcarreo(manA, manB, pos+1, 0);
+    bool bitA = (manA & bitPos.at(pos)) != 0;
+    bool bitB = (manB & bitPos.at(pos)) != 0;
+
+    unsigned int nuevoAcarreo = (bitA && bitB) || (acarreoActual && (bitA || bitB));
+
+    return carry(manA, manB, pos + 1, nuevoAcarreo);
 }
 
 
