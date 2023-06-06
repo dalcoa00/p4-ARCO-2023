@@ -391,11 +391,8 @@ float MainWindow::multiplyOperation(float op1, float op2){
 
 }
 
-<<<<<<< HEAD
 int MainWindow::calculaDesbordamiento(int expResul) {
-=======
-int MainWindow::calculaDesbordamiento(int expResul, unsigned int P) {
->>>>>>> 921804b42e8e0396e2781d6a9e7f92882be6d1d8
+
     /*Para calcular el resultado, primero se comprueba si se produce desbordamiento*/
 
     //Desbordamiento a infinito (overflow) cuando el exponenteResultado > expMaximoRepresentable
