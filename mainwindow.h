@@ -3,7 +3,6 @@
 
 #include <QMainWindow>
 #include <QLineEdit>
-#include "ieee754converter.h"
 #include <math.h>
 
 QT_BEGIN_NAMESPACE
@@ -19,39 +18,43 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_suma_clicked();
+    void on_add_clicked();
 
-    void on_multiplicacion_clicked();
+    void on_mult_clicked();
 
-    void on_division_clicked();
+    void on_div_clicked();
 
     void on_Reset_clicked();
 
 private:
     QString resultado;
 
-    float denormalCalculator(unsigned int sign, unsigned int mantissa);
+    float denormalCalculator(unsigned long sign, unsigned long mantissa);
     
-    float addOperation(float op1,float op2);
+    float addOperation(float num1,float num2);
 
-    float multiplyOperation(float op1, float op2);
+    float multOperation(float num1, float num2);
 
-    float divisionOperation(float op1, float op2);
+    float divOperation(float num1, float num2);
 
-    QString toIEEEString(unsigned int signo, unsigned int exponente, unsigned int mantisa);
+    QString toIEEEString(unsigned long signo, unsigned long exponente, unsigned long mantisa);
 
-    unsigned int carry(unsigned int manA, unsigned int manB, unsigned int pos, unsigned int acarreoActual);
+    unsigned long carry(unsigned long aMant, unsigned long bMant, unsigned long pos, unsigned long actualCarry);
 
-    QString toHexadecimalString(unsigned int signo, unsigned int exponente, unsigned int mantisa);
+    void getMethod(int clicked, float num1, float num2);
+
+    void print(float total, float num1, float num2, QString result2);
+
+    QString toHexadecimalString(unsigned long signo, unsigned long exponente, unsigned long mantisa);
 
     int calculateOverflow(int expResul);
 
-    unsigned int getC2(unsigned int number);
+    unsigned long getC2(unsigned long number);
 
-    QString toMantisa(unsigned int mantisa);
+    QString toMantisa(unsigned long mantisa);
 
     Ui::MainWindow *ui;
 
-    std::vector<unsigned int> bits;
+    std::vector<unsigned long> bits;
 };
 #endif // MAINWINDOW_H

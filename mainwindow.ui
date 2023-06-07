@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QLabel" name="op1_label">
+   <widget class="QLabel" name="num1_label">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -32,7 +32,7 @@
      <string>OPERANDO 1</string>
     </property>
    </widget>
-   <widget class="QLabel" name="op2_label">
+   <widget class="QLabel" name="num2_label">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -122,7 +122,7 @@
      <string>HEXADECIMAL</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="op1Real">
+   <widget class="QLineEdit" name="num1Real">
     <property name="geometry">
      <rect>
       <x>140</x>
@@ -140,7 +140,7 @@
      <string/>
     </property>
    </widget>
-   <widget class="QLineEdit" name="op2Real">
+   <widget class="QLineEdit" name="num2Real">
     <property name="geometry">
      <rect>
       <x>140</x>
@@ -158,7 +158,7 @@
      <string/>
     </property>
    </widget>
-   <widget class="QLineEdit" name="op1IEEE">
+   <widget class="QLineEdit" name="num1IEEE">
     <property name="geometry">
      <rect>
       <x>270</x>
@@ -176,7 +176,7 @@
      <string/>
     </property>
    </widget>
-   <widget class="QLineEdit" name="op2IEEE">
+   <widget class="QLineEdit" name="num2IEEE">
     <property name="geometry">
      <rect>
       <x>270</x>
@@ -194,7 +194,7 @@
      <string/>
     </property>
    </widget>
-   <widget class="QLineEdit" name="op1Hex">
+   <widget class="QLineEdit" name="num1Hex">
     <property name="geometry">
      <rect>
       <x>670</x>
@@ -212,7 +212,7 @@
      <string/>
     </property>
    </widget>
-   <widget class="QLineEdit" name="op2Hex">
+   <widget class="QLineEdit" name="num2Hex">
     <property name="geometry">
      <rect>
       <x>670</x>
@@ -313,7 +313,7 @@
     </property>
     <layout class="QGridLayout" name="gridLayout">
      <item row="0" column="0">
-      <widget class="QPushButton" name="suma">
+      <widget class="QPushButton" name="add">
        <property name="minimumSize">
         <size>
          <width>299</width>
@@ -337,7 +337,7 @@
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QPushButton" name="multiplicacion">
+      <widget class="QPushButton" name="mult">
        <property name="maximumSize">
         <size>
          <width>16777215</width>
@@ -355,7 +355,7 @@
       </widget>
      </item>
      <item row="0" column="2">
-      <widget class="QPushButton" name="division">
+      <widget class="QPushButton" name="div">
        <property name="maximumSize">
         <size>
          <width>16777215</width>
