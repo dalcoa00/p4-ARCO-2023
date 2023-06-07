@@ -215,6 +215,7 @@ float MainWindow::addOperation(float num1, float num2)
     }
 
     //DENORMALES
+    //Sería igual para la multiplicación
     if(expR>0b11111111){ //En caso de que el exponente sea 128 (o todo 1s), decimos que es Infinito o -Infinito dependiendo de su signo.
         return (addSign)? -Q_INFINITY:Q_INFINITY;
     }
@@ -330,6 +331,9 @@ float MainWindow::multOperation(float num1, float num2){
     else if (desbordamiento == 1) { //underflow
         unsigned long t = 0 - expR; // t = exponenteMínimo - exponenteProducto
 
+        //Si t >= nº bits mantisa -> hay underflow porque se desplaza toda la mantisa
+
+        //Si no
         //Desplaza aritméticamente P (P,A) t bits a la derecha
         //Nota: el resultado será un valor denormal
         P = P >> t;
@@ -337,6 +341,20 @@ float MainWindow::multOperation(float num1, float num2){
         //ExponenteProducto = exponenteMínimo
         expR = 0;
     }
+
+    //Los denormales de la multiplicación serían iguales que como están en la suma
+    //3v.iii. DENORMALES
+    /*
+     *Si expoProd < expMinimo -> igual que underflow
+     *
+     *Si expProd > expMin -> t1 = expProd - expMin;
+     *t2 = nº bits a desplazar (P, A) hacia la izda para mantisa normalizada
+     *t = min(t1, t2)
+     *expProd = expProd - t;
+     *(P,A) desplazar aritméticamente t bits a la izda
+     *
+     *Si expProd = expMin -> Resultado directamente denormal
+    */
 
     //3v.iiii. manP = P;
     unsigned long manP = P;
@@ -418,6 +436,7 @@ float MainWindow::divOperation(float num1, float num2)
 
     float escaladoA = 0, escaladoB = 0;
 
+    //Escalado del número en formato IEEE
     for(int i = 0; i < 24; i++){
         if(mantisaA.at(i).digitValue() == 1) {
             escaladoA += 1 * pow(2, -i);
@@ -502,7 +521,7 @@ int MainWindow::calculateOverflow(int expResul) {
         return 0;
     }
     //Desbordamiento a 0 (underflow)
-    else if (expResul < 0){
+    else if (expResul < 0){ //exponente producto < exponente mínimo
         return 1;
     }
     else {
